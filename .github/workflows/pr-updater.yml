@@ -1,0 +1,103 @@
+name: "✨ Auto-Update PR Description"
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  update-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Essential to get the full history for git log
+
+      - name: Extract Commit Data
+        id: extract_commits
+        run: |
+          # This regex only matches commits starting with feat, fix, refactor, or perf
+          # It filters out chore, docs, and style to keep the PR clean
+          COMMITS=$(git log ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} \
+          --grep='^feat:\|^fix:\|^refactor:\|^perf:' \
+          --pretty=format:"%s%n%b%n__COMMIT__")
+
+          echo "COMMITS<<EOF" >> $GITHUB_ENV
+          echo "$COMMITS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Update PR Description
+        uses: actions/github-script@v7
+        env:
+          COMMITS: ${{ env.COMMITS }}
+        with:
+          script: |
+            const commits = process.env.COMMITS
+            .split('__COMMIT__')
+            .map(c => c.trim())
+            .filter(Boolean);
+
+            const clean = (str) => {
+              if (!str) return "";
+              const trimmed = str.trim();
+              const isPlaceHolder = ["n/a", "- n/a", "no overview provided.", "-"].includes(trimmed.toLowerCase());
+              return isPlaceHolder ? "" : trimmed;
+            };
+
+            let overviewSet = new Set();
+            let featuresSet = new Set();
+            let structureSet = new Set();
+            let responsibilitiesSet = new Set();
+
+            commits.forEach(commit => {
+              if (!commit.trim()) return;
+
+              const rawOverview = commit.split('Overview:')[1]?.split('Features:')[0];
+              const rawFeatures = commit.split('Features:')[1]?.split('Structure:')[0];
+              const rawStructure = commit.split('Structure:')[1]?.split('Responsibilities:')[0];
+              const rawResp = commit.split('Responsibilities:')[1];
+
+              if (clean(rawOverview)) overviewSet.add(clean(rawOverview));
+              
+              const processLines = (raw, set) => {
+                if (clean(raw)) {
+                  raw.split('\n').forEach(line => {
+                    const entry = clean(line.replace(/^[-*•]\s*/, '')); // Strip existing bullets
+                    if (entry) set.add(entry);
+                  });
+                }
+              };
+
+              processLines(rawFeatures, featuresSet);
+              processLines(rawStructure, structureSet);
+              processLines(rawResp, responsibilitiesSet);
+            });
+
+            const body = `
+            ## Overview
+            ${Array.from(overviewSet).join('\n\n') || "_No overview provided._"}
+
+            ## Features
+            ${Array.from(featuresSet).map(f => `* ${f}`).join('\n') || "_No new features listed._"}
+
+            ## Structure
+            ${Array.from(structureSet).map(s => `* ${s}`).join('\n') || "_No structure changes documented._"}
+
+            ## Responsibilities
+            ${Array.from(responsibilitiesSet).map(r => `* ${r}`).join('\n') || "_No specific responsibilities noted._"}
+
+            ---
+            _Generated from commit history by GitHub Actions 🤖_
+            `.replace(/^\s+/gm, ''); // Cleans up the indentation for markdown
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              body: body
+            });

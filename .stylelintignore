@@ -1,0 +1,13 @@
+# Test & coverage
+coverage
+test-results
+playwright-report
+
+# Generated files
+_.min.css
+_.map
+
+# Env files
+.env
+.env.*
+!.env.example

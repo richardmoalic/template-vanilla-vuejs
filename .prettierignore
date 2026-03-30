@@ -1,0 +1,31 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# Lockfiles
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Reports
+coverage
+test-results
+playwright-report
+
+# Generated files
+*.min.*
+*.map
+
+# Snapshots
+tests/__snapshots__
+
+# System
+.DS_Store
+.eslintcache
+
+# Env files
+.env
+.env.*
+!.env.example

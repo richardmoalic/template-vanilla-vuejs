@@ -1,0 +1,25 @@
+{
+  "source": {
+    "include": ["src"],
+    "exclude": ["node_modules", "dist", "tests", "src/**/*.spec.js"],
+    "includePattern": ".+\\.js(doc|x)?$",
+    "excludePattern": "(^|\\/|\\\\)_"
+  },
+  "plugins": ["plugins/markdown"],
+  "opts": {
+    "destination": "./docs",
+    "recurse": true,
+    "template": "node_modules/docdash",
+    "readme": "./README.md",
+    "encoding": "utf8"
+  },
+  "docdash": {
+    "search": true,
+    "commonNav": true,
+    "title": "Vue Template Documentation"
+  },
+  "tags": {
+    "allowUnknownTags": true,
+    "dictionaries": ["jsdoc", "closure"]
+  }
+}

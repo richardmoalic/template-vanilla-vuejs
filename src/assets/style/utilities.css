@@ -1,0 +1,128 @@
+/* ==============================
+   Utilities CSS
+   Minimal helpers for spacing, flex, text, shadows
+   ============================== */
+
+/* ------------------------------
+   Text Helpers
+------------------------------ */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-bold { font-weight: 700; }
+.text-italic { font-style: italic; }
+
+/* ------------------------------
+   Margin Helpers
+   Usage: m-[size], mt-[size], mb-[size], ml-[size], mr-[size]
+------------------------------ */
+.m-xs { margin: var(--space-xs); }
+.m-sm { margin: var(--space-sm); }
+.m-md { margin: var(--space-md); }
+.m-lg { margin: var(--space-lg); }
+
+.mt-xs { margin-top: var(--space-xs); }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+
+.mb-xs { margin-bottom: var(--space-xs); }
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+
+.ml-xs { margin-left: var(--space-xs); }
+.ml-sm { margin-left: var(--space-sm); }
+.ml-md { margin-left: var(--space-md); }
+.ml-lg { margin-left: var(--space-lg); }
+
+.mr-xs { margin-right: var(--space-xs); }
+.mr-sm { margin-right: var(--space-sm); }
+.mr-md { margin-right: var(--space-md); }
+.mr-lg { margin-right: var(--space-lg); }
+
+/* ------------------------------
+   Padding Helpers
+   Usage: p-[size], pt-[size], pb-[size], pl-[size], pr-[size]
+------------------------------ */
+.p-xs { padding: var(--space-xs); }
+.p-sm { padding: var(--space-sm); }
+.p-md { padding: var(--space-md); }
+.p-lg { padding: var(--space-lg); }
+
+.pt-xs { padding-top: var(--space-xs); }
+.pt-sm { padding-top: var(--space-sm); }
+.pt-md { padding-top: var(--space-md); }
+.pt-lg { padding-top: var(--space-lg); }
+
+.pb-xs { padding-bottom: var(--space-xs); }
+.pb-sm { padding-bottom: var(--space-sm); }
+.pb-md { padding-bottom: var(--space-md); }
+.pb-lg { padding-bottom: var(--space-lg); }
+
+.pl-xs { padding-left: var(--space-xs); }
+.pl-sm { padding-left: var(--space-sm); }
+.pl-md { padding-left: var(--space-md); }
+.pl-lg { padding-left: var(--space-lg); }
+
+.pr-xs { padding-right: var(--space-xs); }
+.pr-sm { padding-right: var(--space-sm); }
+.pr-md { padding-right: var(--space-md); }
+.pr-lg { padding-right: var(--space-lg); }
+
+/* ------------------------------
+   Flexbox Helpers
+------------------------------ */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-row { flex-direction: row; }
+
+.flex-center { 
+   display: flex;
+   justify-content: center;
+   align-items: center;
+ }
+
+.flex-space-between {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+ }
+
+.flex-wrap { flex-wrap: wrap; }
+
+/* ------------------------------
+   Shadow Helpers
+------------------------------ */
+.shadow-main { box-shadow: var(--shadow-main); }
+.shadow-button { box-shadow: var(--shadow-button); }
+.shadow-card { box-shadow: var(--shadow-card); }
+.shadow-cell { box-shadow: var(--shadow-cell); }
+
+/* ------------------------------
+   Border Radius Helpers
+------------------------------ */
+.radius-sm { border-radius: var(--radius-sm); }
+.radius-md { border-radius: var(--radius-md); }
+.radius-lg { border-radius: var(--radius-lg); }
+.radius-round { border-radius: var(--radius-round); }
+
+/* ------------------------------
+   Width & Height Helpers
+------------------------------ */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.max-w-full { max-width: 100%; }
+.min-h-screen { min-height: 100vh; }
+
+/* ------------------------------
+   Cursor Helpers
+------------------------------ */
+.cursor-pointer { cursor: pointer; }
+.cursor-default { cursor: default; }
+
+/* ------------------------------
+   Overflow Helpers
+------------------------------ */
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }

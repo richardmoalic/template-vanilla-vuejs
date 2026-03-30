@@ -1,0 +1,5 @@
+#!/bin/sh
+echo "PRE COMMIT"
+
+echo "--- Running Fast Staged Checks ---"
+pnpm lint-staged || exit 1
