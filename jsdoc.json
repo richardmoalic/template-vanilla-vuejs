@@ -13,11 +13,6 @@
     "readme": "./README.md",
     "encoding": "utf8"
   },
-  "docdash": {
-    "search": true,
-    "commonNav": true,
-    "title": "Vue Template Documentation"
-  },
   "tags": {
     "allowUnknownTags": true,
     "dictionaries": ["jsdoc", "closure"]
