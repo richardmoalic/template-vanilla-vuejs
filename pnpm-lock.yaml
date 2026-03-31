@@ -63,9 +63,6 @@ importers:
       cz-git:
         specifier: ^1.12.0
         version: 1.12.0
-      docdash:
-        specifier: ^2.0.2
-        version: 2.0.2
       esbuild:
         specifier: ^0.27.4
         version: 0.27.4
@@ -96,6 +93,9 @@ importers:
       lint-staged:
         specifier: ^16.4.0
         version: 16.4.0
+      minami:
+        specifier: ^1.2.3
+        version: 1.2.3
       prettier:
         specifier: ^3.8.1
         version: 3.8.1
@@ -1370,9 +1370,6 @@ packages:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
     engines: {node: '>=8'}
 
-  docdash@2.0.2:
-    resolution: {integrity: sha512-3SDDheh9ddrwjzf6dPFe1a16M6ftstqTNjik2+1fx46l24H9dD2osT2q9y+nBEC1wWz4GIqA48JmicOLQ0R8xA==}
-
   dom-serializer@2.0.0:
     resolution: {integrity: sha512-wIkAryiqt/nV5EQKqQpo3SToSOV9J0DnbJqwK7Wv/Trc92zIAYZ4FlMu+JPFW1DfGFt81ZTCGgDEabffXeLyJg==}
 
@@ -2383,6 +2380,9 @@ packages:
   mimic-function@5.0.1:
     resolution: {integrity: sha512-VP79XUPxV2CigYP3jWwAUFSku2aKqBH7uTAapFWCBqutsbmDo96KY5o8uh6U+/YSIn5OxJnXp73beVkpqMIGhA==}
     engines: {node: '>=18'}
+
+  minami@1.2.3:
+    resolution: {integrity: sha512-3f2QqqbUC1usVux0FkQMFYB73yd9JIxmHSn1dWQacizL6hOUaNu6mA3KxZ9SfiCc4qgcgq+5XP59+hP7URa1Dw==}
 
   minimatch@10.2.4:
     resolution: {integrity: sha512-oRjTw/97aTBN0RHbYCdtF1MQfvusSIBQM0IZEgzl6426+8jSC0nF1a/GmnVLpfB9yyr6g6FTqWqiZVbxrtaCIg==}
@@ -4777,10 +4777,6 @@ snapshots:
     dependencies:
       path-type: 4.0.0
 
-  docdash@2.0.2:
-    dependencies:
-      '@jsdoc/salty': 0.2.11
-
   dom-serializer@2.0.0:
     dependencies:
       domelementtype: 2.3.0
@@ -5830,6 +5826,8 @@ snapshots:
   mimic-fn@4.0.0: {}
 
   mimic-function@5.0.1: {}
+
+  minami@1.2.3: {}
 
   minimatch@10.2.4:
     dependencies:

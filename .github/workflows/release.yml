@@ -110,6 +110,9 @@ jobs:
 
       # Generate docs
       - name: Generate docs
+        env:
+          CI: true
+          BROWSER: none
         run: pnpm docs
 
       # Version docs
