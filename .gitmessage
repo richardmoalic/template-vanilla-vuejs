@@ -1,0 +1,39 @@
+# -------------------------------
+# Commit Template for VueJS Project
+# -------------------------------
+# Type: feat | fix | refactor | perf | docs | chore
+# Scope: optional
+# Short Description (imperative): 
+# Overview (high-level):
+# Features (use '-' for bullets):
+# Structure (files changed):
+# Responsibilities (who/what is impacted?):
+#
+# Example:
+# feat: Add new login page
+# Overview:
+#   Implemented login page with form validation
+# Features:
+#   - Login form
+#   - Validation
+# Structure:
+#   - src/components/Login.vue
+# Responsibilities:
+#   - Frontend
+# -------------------------------
+
+Type: 
+Scope: 
+Short Description: 
+
+Overview:
+- 
+
+Features:
+- 
+
+Structure:
+- 
+
+Responsibilities:
+- 

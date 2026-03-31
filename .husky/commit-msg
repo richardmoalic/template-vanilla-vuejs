@@ -1,3 +1,5 @@
 #!/bin/sh
 echo "COMMIT MSG CHECK HOOK RUNNING"
-pnpm commit:check "$1" || exit 1
+
+echo "--- Validating Commit Message ---"
+pnpm commitlint --edit "$1"

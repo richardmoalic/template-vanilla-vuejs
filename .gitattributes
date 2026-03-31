@@ -93,34 +93,6 @@ composer.phar binary
 *.phtml   text
 
 
-
-# Symfony environment/cache/logs
-/.env.local
-/.env.local.php
-/.env
-/.env.*.local
-/var/
-!/var/cache
-/var/cache/*
-!var/cache/.gitkeep
-!/var/log
-/var/log/*
-!var/log/.gitkeep
-!/var/sessions
-/var/sessions/*
-!var/sessions/.gitkeep
-!/var/tmp
-/var/tmp/*
-!var/tmp/.gitkeep
-
-# PHPUnit
-.phpunit.cache
-.phpunit.result.cache
-
-# Composer vendor
-/vendor/
-
-
 # Docker and deployment files
 Dockerfile text
 docker-compose.yml text
