@@ -113,7 +113,7 @@ jobs:
         env:
           CI: true
           BROWSER: none
-        run: CI=true pnpm docs
+        run: BROWSER=none CI=true pnpm docs
 
       # Version docs
       - name: Version docs
