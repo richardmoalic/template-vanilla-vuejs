@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build and temporary files
+dist/
+build/
+coverage/
+.vite/
+build.zip
+
+# Tests
+tests/
+**/*.test.js
+**/*.spec.js
+**/*.test.ts
+**/*.spec.ts
+
+# Configuration and hidden files
+.github/
+.husky/
+.vscode/
+docs/
+versioned/
+CHANGELOG.md
+package.json
+pnpm-lock.yaml
+
+# Assets
+src/assets/
