@@ -49,7 +49,7 @@
     "lint:fix": "pnpm lint:js:fix && pnpm lint:style",
     "lint:report": "eslint \"src/**/*.{ts,tsx,js,jsx}\" -f html -o eslint-report.html",
     "lint:report:json": "eslint \"src/**/*.{ts,tsx,js,jsx}\" -f json -o eslint-report.json",
-    "docs": "CI=true jsdoc -c jsdoc.json",
+    "docs:generate": "jsdoc -c jsdoc.json",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
