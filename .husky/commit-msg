@@ -1,5 +1,6 @@
 #!/bin/sh
-echo "COMMIT MSG CHECK HOOK RUNNING"
+
+echo "COMMIT MSG HOOK RUNNING"
 
 echo "--- Validating Commit Message ---"
-pnpm commitlint --edit "$1"
+pnpm cm:check "$1"

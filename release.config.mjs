@@ -1,6 +1,6 @@
 //release.config.mjs
 export default {
-    branches: ["main", { name: "develop", prerelease: true }, { name: "staging", prerelease: "rc" }],
+    branches: ["main", { name: "develop", prerelease: "beta" }, { name: "staging", prerelease: "rc" }],
     plugins: [
         // 1. Analyze commits
         [
@@ -8,9 +8,11 @@ export default {
             {
                 preset: "conventionalcommits",
                 releaseRules: [
+                    { type: 'docs', scope: 'README', release: 'patch' },
                     { type: "feat", release: "minor" },
                     { type: "fix", release: "patch" },
-                    { type: "perf", release: "patch" },
+                    { type: "perf", release: "minor" },
+                    { type: 'style', release: 'patch' },
                     { type: "refactor", release: "patch" },
                 ],
             },
@@ -28,10 +30,30 @@ export default {
                         { type: "refactor", section: "Refactoring" },
                         { type: "docs", section: "Documentation" },
                         { type: "chore", hidden: true },
+                        { type: "style", hidden: true  },
+                        { type: "build", hidden: true  },
+                        { type: "ci", hidden: true  },
+                        { type: "test", hidden: true  },
                     ],
                 },
             },
         ],
+
+        ['@semantic-release/npm', {
+      npmPublish: false,
+    }],
+
+     [
+    "@semantic-release/exec",
+    {
+      prepareCmd: `
+        export VITE_APP_VERSION=$(node -p "require('./package.json').version") &&
+        pnpm build &&
+        zip -r build.zip dist/
+      `
+    }
+  ],
+
         // 3. Update CHANGELOG.md
         [
             "@semantic-release/changelog",
@@ -39,20 +61,13 @@ export default {
                 changelogFile: "CHANGELOG.md",
             },
         ],
-        // 4. Update package.json version & Commit changes
-        [
-            "@semantic-release/git",
-            {
-                assets: ["CHANGELOG.md", "package.json"],
-                message: "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
-            },
-        ],
+
         // 5. Create GitHub Release
         [
-            "@semantic-release/github",
+            "@semantic-release/github", 
             {
                 assets: [{ path: "build.zip", label: "Build" }],
-            },
-        ],
+            }
+        ]
     ],
 };

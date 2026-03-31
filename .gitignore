@@ -7,10 +7,17 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+node_modules/
+.pnpm-store/
+dist/
+dist-ssr/
 *.local
+
+# 3. Vite & Tools Cache
+.vite/
+.eslintcache
+.stylelintcache
+.npm/
 
 # Editor directories and files
 .vscode/*
@@ -22,8 +29,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+thumbs.db
 
 .env
 .env.*
 
 .husky/_
+/coverage
+
+
+# 4. Semantic Release & Build Zips
+build.zip
+CHANGELOG.md.bak

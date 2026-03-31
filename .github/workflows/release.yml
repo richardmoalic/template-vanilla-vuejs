@@ -1,4 +1,4 @@
-name: "Release & Changelog"
+name: "Release, Docs & Deploy"
 
 on:
   push:
@@ -6,96 +6,114 @@ on:
       - main
       - develop
       - staging
-
   workflow_dispatch:
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  # -----------------------------------
+  # 1️⃣ RELEASE + BUILD (SOURCE OF TRUTH)
+  # -----------------------------------
   release:
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
       pull-requests: write
       issues: write
 
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
     steps:
-      # 1. Checkout repo with full history for semantic-release
-      - name: Checkout
-        uses: actions/checkout@v4
+      # Checkout full history
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      # 2. Setup pnpm & Node
-      - uses: pnpm/action-setup@v4
+      # Setup
+      - uses: pnpm/action-setup@v5
         with:
           version: 9
-      - uses: actions/setup-node@v4
+
+      - uses: actions/setup-node@6
         with:
           node-version-file: ".nvmrc"
           cache: "pnpm"
 
-      # 3. Install dependencies
+      # Install
       - run: pnpm install --frozen-lockfile
-        
-      - name: Verify CSS Standards
-        run: pnpm lint:css
 
-      - name: Verify JS Standards
-        run: pnpm lint:check
-        
-      # This will fail the CI if tests fail OR coverage threshold isn't met
-      - name: Run Unit Tests & Coverage
-        run: pnpm test:coverage
+      # Quality gates
+      - run: pnpm lint:css
+      - run: pnpm lint:check
+      - run: pnpm test:coverage
 
-      # 4. Verify build (optional sanity check)
-      - run: pnpm build
-
-      # 5. Run semantic-release
+      # -----------------------------
+      # Semantic Release FIRST
+      # -----------------------------
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+          HUSKY: 0
+        run: pnpm release:ci
 
+      # -----------------------------
+      # Extract version AFTER release
+      # -----------------------------
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # Upload artifact (for deploy job)
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist
+
+  # -----------------------------------
+  # 2️⃣ DOCS (VERSIONED)
+  # -----------------------------------
   docs:
-    name: "Generate & Deploy Docs"
     runs-on: ubuntu-latest
-    needs: release   # only run if release succeeds
+    needs: release
 
-    if: |
-      github.ref == 'refs/heads/main' &&
-      (needs.release.result == 'success' || github.event_name == 'workflow_dispatch')
+    if: github.event_name == 'push'
 
     permissions:
       contents: write
 
     steps:
-      # 1. Checkout latest code (including release commit/tag)
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      # 2. Setup pnpm & Node
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           version: 9
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: ".nvmrc"
           cache: "pnpm"
 
-      # 3. Install deps
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
-      - name: Get version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+      # Use version from release job
+      - name: Set version
+        run: echo "VERSION=${{ needs.release.outputs.version }}" >> $GITHUB_ENV
 
-      # 4. Generate docs
-      - name: Prepare versioned docs
+      # Generate docs
+      - name: Generate docs
+        run: pnpm docs
+
+      # Version docs
+      - name: Version docs
         run: |
           mkdir -p versioned/${VERSION}
           cp -r docs/* versioned/${VERSION}/
@@ -103,59 +121,31 @@ jobs:
           rm -rf versioned/latest
           cp -r versioned/${VERSION} versioned/latest
 
-      # 5. Deploy to GitHub Pages
-      - name: Deploy docs
-        uses: peaceiris/actions-gh-pages@v4
+      # Deploy docs
+      - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./versioned
           publish_branch: gh-pages
-          destination_dir: "."
-          user_name: github-actions[bot]
-          user_email: github-actions[bot]@users.noreply.github.com
 
+  # -----------------------------------
+  # 3️⃣ DEPLOY APP (NO REBUILD)
+  # -----------------------------------
   deploy:
-    name: "Deploy App"
     runs-on: ubuntu-latest
     needs: release
 
-    if: |
-      github.event_name == 'push' &&
-      needs.release.result == 'success'
+    if: github.event_name == 'push'
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      # Download build from release job
+      - name: Download build
+        uses: actions/download-artifact@v8
         with:
-          fetch-depth: 0
+          name: dist
+          path: dist
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build app
-        run: |
-          case "${{ github.ref_name }}" in
-            "develop")
-              echo "Building for Staging..."
-              pnpm build --mode staging
-              ;;
-            "main")
-              echo "Building for Production..."
-              pnpm build --mode production
-              ;;
-          esac
-
+      # Deploy
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:

@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Essential to get the full history for git log
 
@@ -32,7 +32,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Update PR Description
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           COMMITS: ${{ env.COMMITS }}
         with:
