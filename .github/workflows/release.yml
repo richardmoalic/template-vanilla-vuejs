@@ -37,7 +37,7 @@ jobs:
         with:
           version: 9
 
-      - uses: actions/setup-node@6
+      - uses: actions/setup-node@4
         with:
           node-version-file: ".nvmrc"
           cache: "pnpm"
@@ -97,7 +97,7 @@ jobs:
         with:
           version: 9
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
           cache: "pnpm"
