@@ -36,7 +36,8 @@ thumbs.db
 
 .husky/_
 /coverage
-
+docs/
+versioned/
 
 # 4. Semantic Release & Build Zips
 build.zip

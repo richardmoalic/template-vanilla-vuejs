@@ -22,7 +22,7 @@ jobs:
         id: extract_commits
         run: |
           # This regex only matches commits starting with feat, fix, refactor, or perf
-          # It filters out chore, docs, and style to keep the PR clean
+          # It filters out chore, docs, ci, build, and style to keep the PR clean
           COMMITS=$(git log ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} \
           --grep='^feat:\|^fix:\|^refactor:\|^perf:' \
           --pretty=format:"%s%n%b%n__COMMIT__")

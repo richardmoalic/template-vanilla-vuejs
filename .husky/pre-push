@@ -1,5 +1,5 @@
 #!/bin/sh
-echo "PRE PUSH"
+echo "Running pre-push checks..."
 
 echo "--- Linting css ---"
 pnpm lint:css || exit 1
@@ -8,7 +8,7 @@ echo "--- Linting js ---"
 pnpm lint:check || exit 1
 
 echo "--- Running tests ---"
-pnpm test:run || exit 1
+pnpm test:related || exit 1
 
 echo "--- Validating Build Consistency ---"
 pnpm build || exit 1

@@ -55,7 +55,10 @@ export default {
         [
             "@semantic-release/github", 
             {
-                assets: [{ path: "build.zip", label: "Build" }],
+               assets: 
+               [
+                { path: "build-v*.zip", label: "Build" }
+                ]
             }
         ]
     ],

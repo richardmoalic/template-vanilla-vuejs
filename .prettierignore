@@ -1,18 +1,28 @@
 # Dependencies
 node_modules
+.pnpm-store
 
 # Build output
 dist
+build
+versioned/
 
 # Lockfiles
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
+# Documentation
+docs/
+docs-tmp/
+
+
 # Reports
 coverage
 test-results
 playwright-report
+blob-report
+.vitest
 
 # Generated files
 *.min.*
@@ -24,6 +34,8 @@ tests/__snapshots__
 # System
 .DS_Store
 .eslintcache
+.vite
+.turbo
 
 # Env files
 .env

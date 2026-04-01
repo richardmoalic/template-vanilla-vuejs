@@ -103,6 +103,6 @@ export default [
     },
   },
 
-  // 6. PRETTIER (Must be last)
+  // 6. PRETTIER 
   prettier,
 ];
