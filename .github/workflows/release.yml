@@ -108,12 +108,16 @@ jobs:
       - name: Set version
         run: echo "VERSION=${{ needs.release.outputs.version }}" >> $GITHUB_ENV
 
+      - name: Debug docs
+        run: ls -la docs
+
       # Generate docs
       - name: Generate docs
         env:
           CI: true
           BROWSER: none
         run: BROWSER=none CI=true pnpm docs:generate
+             ls -la docs
 
       # Version docs
       - name: Version docs
@@ -130,6 +134,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./versioned
           publish_branch: gh-pages
+          destination_dir: docs
+          keep_files: true
 
   # -----------------------------------
   # 3️⃣ DEPLOY APP (NO REBUILD)
@@ -156,5 +162,6 @@ jobs:
           publish_dir: ./dist
           publish_branch: gh-pages
           destination_dir: ${{ github.ref_name == 'develop' && 'staging' || '' }}
+          keep_files: true
           user_name: github-actions[bot]
           user_email: github-actions[bot]@users.noreply.github.com
