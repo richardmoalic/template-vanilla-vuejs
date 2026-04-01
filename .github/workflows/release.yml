@@ -108,16 +108,12 @@ jobs:
       - name: Set version
         run: echo "VERSION=${{ needs.release.outputs.version }}" >> $GITHUB_ENV
 
-      - name: Debug docs
-        run: ls -la docs
-
       # Generate docs
       - name: Generate docs
         env:
           CI: true
           BROWSER: none
         run: BROWSER=none CI=true pnpm docs:generate
-             ls -la docs
 
       # Version docs
       - name: Version docs
