@@ -55,7 +55,7 @@
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
     "test:unit": "vitest run",
-    "test:related": "vitest related --run",
+    "test:related": "vitest related --run --passWithNoTests --no-coverage",
     "test:component": "vitest run -t \"component\"",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",

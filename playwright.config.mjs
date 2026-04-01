@@ -1,30 +1,30 @@
 //playwright.config.ts
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: "./tests",
+  testDir: './tests',
   fullyParallel: true,
-  reporter: "html",
+  reporter: 'html',
   use: {
-    baseURL: "http://localhost:5173",
-    trace: "on-first-retry",
+    baseURL: 'http://localhost:5173',
+    trace: 'on-first-retry',
   },
   projects: [
     {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
     },
     {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
     },
     {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
     },
   ],
   webServer: {
-    command: "pnpm dev",
+    command: 'pnpm dev',
     port: 5173,
     reuseExistingServer: !process.env.CI,
   },

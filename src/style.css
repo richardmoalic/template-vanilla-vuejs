@@ -9,14 +9,13 @@
   padding: 0;
 }
 
-
-html, body {
+html,
+body {
   min-height: 100vh;
   font-family: var(--font-family-base);
   background: var(--color-bg-body);
   color: var(--color-dark);
 }
-
 
 /* -------------------------
    Root Variables / Design Tokens
@@ -41,7 +40,6 @@ html, body {
   --border-md: 0.4rem;
   --border-lg: 0.8rem;
 
-
   /* Radius */
   --radius-sm: 0.3125rem;
   --radius-md: 0.625rem;
@@ -51,13 +49,11 @@ html, body {
   /* Shadows */
   --shadow-main: 1px 0px 4px 1px rgb(66 68 90 / 100%);
   --shadow-button: 5px 5px 0px 0px rgb(51 51 51 / 100%);
-  --shadow-cell:inset 2px 2px 2px rgb(255 255 255 / 40%), 
-               inset -2px -2px 2px rgb(0 0 0 / 20%),
-               2px 2px 5px rgb(0 0 0 / 30%);
-  --shadow-card: 
-  0px 2px 4px rgb(0 0 0 / 8%),
-  0px 8px 16px rgb(0 0 0 / 12%),
-  0px 16px 24px rgb(0 0 0 / 8%);
+  --shadow-cell:
+    inset 2px 2px 2px rgb(255 255 255 / 40%), inset -2px -2px 2px rgb(0 0 0 / 20%),
+    2px 2px 5px rgb(0 0 0 / 30%);
+  --shadow-card:
+    0px 2px 4px rgb(0 0 0 / 8%), 0px 8px 16px rgb(0 0 0 / 12%), 0px 16px 24px rgb(0 0 0 / 8%);
 
   /* Spacing */
   --space-xs: 0.3rem;
@@ -65,7 +61,7 @@ html, body {
   --space-md: 1rem;
   --space-lg: 1.2rem;
 
-     /* Letter spacing */
+  /* Letter spacing */
   --letter-spacing-main: 0.3rem;
   --letter-spacing-list: 0.05rem;
   --letter-spacing-button: 0.1rem;
@@ -84,13 +80,10 @@ html, body {
   --font-size-lg: 1.5rem;
   --font-size-xl: 2rem;
 
-
-   /* Transition */
+  /* Transition */
   --transition-fast: 150ms ease;
   --transition-normal: 300ms ease;
-
 }
-
 
 /* -------------------------
    Utility / Global Elements
@@ -100,7 +93,9 @@ a {
   color: var(--color-accent);
 }
 
-img, video, canvas {
+img,
+video,
+canvas {
   max-width: 100%;
   display: block;
 }
