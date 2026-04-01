@@ -43,17 +43,6 @@ export default {
       npmPublish: false,
     }],
 
-     [
-    "@semantic-release/exec",
-    {
-      prepareCmd: `
-        export VITE_APP_VERSION=$(node -p "require('./package.json').version") &&
-        pnpm build &&
-        zip -r build.zip dist/
-      `
-    }
-  ],
-
         // 3. Update CHANGELOG.md
         [
             "@semantic-release/changelog",
