@@ -1,10 +1,10 @@
-import { defineConfig } from 'vitest/config';
 import vue from '@vitejs/plugin-vue';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vitest/config';
 
-import { getTestConfig } from './vitest.test.mjs';
 import { getCoverageConfig } from './vitest.coverage.mjs';
+import { getTestConfig } from './vitest.test.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

@@ -1,11 +1,7 @@
 {
   "pull_request": {
     "number": 1,
-    "base": {
-      "sha": "main"
-    },
-    "head": {
-      "sha": "develop"
-    }
+    "base": { "sha": "main", "ref": "main" },
+    "head": { "sha": "HEAD", "ref": "feature-branch" }
   }
 }

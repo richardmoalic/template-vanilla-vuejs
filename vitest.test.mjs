@@ -3,5 +3,5 @@ export const getTestConfig = () => ({
   environment: 'jsdom',
   setupFiles: ['./tests/setup.js'],
   include: ['src/**/*.{test,spec}.{js,ts,vue}', 'tests/**/*.{test,spec}.{js,ts,vue}'],
-  exclude: ['node_modules/', 'tests/__snapshots__'],
+  exclude: ['node_modules/', 'tests/__snapshots__', '**/e2e/**'],
 });

@@ -42,3 +42,5 @@ versioned/
 # 4. Semantic Release & Build Zips
 build.zip
 CHANGELOG.md.bak
+
+.secrets

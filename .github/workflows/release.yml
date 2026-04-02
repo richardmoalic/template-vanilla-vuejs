@@ -1,136 +1,21 @@
-name: 'Release, Docs & Deploy'
+name: 'CI , RELEASE'
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-      - staging
-  workflow_dispatch:
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_call:
+    outputs:
+      version:
+        value: ${{ jobs.release.outputs.version }}
+      result:
+        value: ${{ jobs.release.result }}
 env:
   HUSKY: 0
-
-jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      app: ${{ steps.filter.outputs.app }}
-      docs: ${{ steps.filter.outputs.docs }}
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            app:
-              - 'src/**'
-              - 'index.html'
-              - 'vite.config.*'
-            docs:
-              - 'src/**'
-              - 'README.md'
-              - 'docs/**'
-              - '*doc*.json' # Matches jsdoc.json, typedoc.json, etc.
-              - 'tsconfig*.json'
-
-  # -----------------------------------
-  # LINT
-  # -----------------------------------
-  lint:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: pnpm/action-setup@v5
-        with:
-          version: 9
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm lint:css
-      - run: pnpm lint:check
-      - run: pnpm prettier --check . --log-level warn
-
-  # -----------------------------------
-  # UNIT TESTS
-  # -----------------------------------
-  unit:
-    needs: changes
-    if: needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: pnpm/action-setup@v5
-        with:
-          version: 9
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm test:coverage
-
-  # -----------------------------------
-  # E2E TESTS
-  # -----------------------------------
-  e2e:
-    needs: changes
-    if: needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: pnpm/action-setup@v5
-        with:
-          version: 9
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      # Install browsers
-      - run: pnpm exec playwright install --with-deps
-
-      - run: pnpm test:e2e
-        
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report
 
   # -----------------------------------
   # RELEASE + BUILD (SOURCE OF TRUTH)
   # -----------------------------------
+jobs:
   release:
     runs-on: ubuntu-latest
-    needs: [lint, unit, e2e, changes]
-    if: |
-      always() && 
-      needs.changes.outputs.app == 'true' && 
-      (needs.unit.result == 'success' || needs.unit.result == 'skipped') &&
-      (needs.e2e.result == 'success' || needs.e2e.result == 'skipped')
 
     permissions:
       contents: write
@@ -146,51 +31,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Setup
-      - uses: pnpm/action-setup@v5
-        with:
-          version: 9
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - name: Get pnpm store path
-        id: pnpm-cache
-        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      # Cache pnpm store
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      # Cache Vite build cache
-      - name: Cache Vite
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules/.vite
-            .vite
-          key: ${{ runner.os }}-vite-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-vite-
-
-      # Cache Vitest
-      - name: Cache Vitest
-        uses: actions/cache@v4
-        with:
-          path: .vitest
-          key: ${{ runner.os }}-vitest-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-vitest-
-
-      # Install
-      - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup-pnpm
 
       # Semantic Release
       - name: Semantic Release
@@ -229,107 +70,3 @@ jobs:
         with:
           name: build-zip
           path: build-v*.zip
-
-  # -----------------------------------
-  # DOCS (VERSIONED)
-  # -----------------------------------
-  docs:
-    runs-on: ubuntu-latest
-    needs: [release, changes]
-
-    if: github.event_name == 'push' && needs.changes.outputs.docs == 'true'
-
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@v5
-        with:
-          version: 9
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      # Cache pnpm store
-      - name: Get pnpm store path
-        id: pnpm-cache
-        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - run: pnpm install --frozen-lockfile
-
-      # Use version from release job
-      - name: Set version
-        run: echo "VERSION=${{ needs.release.outputs.version }}" >> $GITHUB_ENV
-
-      # Generate docs
-      - name: Generate docs
-        env:
-          CI: true
-          BROWSER: none
-        run: |
-          export DOC_VERSION=${{ needs.release.outputs.version }}
-          BROWSER=none CI=true pnpm docs:generate
-
-      # Version docs
-      - name: Version docs
-        run: |
-          mkdir -p versioned/${VERSION}
-          cp -r docs/* versioned/${VERSION}/
-
-          rm -rf versioned/latest
-          cp -r versioned/${VERSION} versioned/latest
-
-      # Deploy docs
-      - uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./versioned
-          publish_branch: gh-pages
-          destination_dir: docs
-          keep_files: true
-
-  # -----------------------------------
-  # DEPLOY APP
-  # -----------------------------------
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [release, changes]
-
-    if: needs.changes.outputs.app == 'true'
-
-    steps:
-      # Download build from release job
-      - name: Download build
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-          if-no-files-found: error
-
-      - name: Debug files
-        run: |
-          ls -la
-          ls -la dist
-
-      # Deploy
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          publish_branch: gh-pages
-          destination_dir: ${{ github.ref_name == 'develop' && 'staging' || '' }}
-          keep_files: true
-          user_name: github-actions[bot]
-          user_email: github-actions[bot]@users.noreply.github.com

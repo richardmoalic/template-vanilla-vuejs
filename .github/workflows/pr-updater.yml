@@ -1,4 +1,4 @@
-name: '✨ Auto-Update PR Description'
+name: '✨ Auto-Update PR Description & CHANGELOG'
 
 on:
   pull_request:
@@ -13,87 +13,70 @@ jobs:
       issues: write
 
     steps:
+      # -------------------------
+      # Checkout full history
+      # -------------------------
       - name: Checkout Code
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0 # Essential to get the full history for git log
+          fetch-depth: 0
 
-      - name: Extract Commit Data
+      # -------------------------
+      # Extract commits for PR
+      # -------------------------
+      - name: Extract commit data
         id: extract_commits
         run: |
-          # This regex only matches commits starting with feat, fix, refactor, or perf
-          # It filters out chore, docs, ci, build, and style to keep the PR clean
           COMMITS=$(git log ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} \
-          --grep='^feat:\|^fix:\|^refactor:\|^perf:' \
           --pretty=format:"%s%n%b%n__COMMIT__")
-
           echo "COMMITS<<EOF" >> $GITHUB_ENV
           echo "$COMMITS" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: Update PR Description
+      # -------------------------
+      # Update PR Description
+      # -------------------------
+      - name: Update PR Body
         uses: actions/github-script@v8
         env:
           COMMITS: ${{ env.COMMITS }}
         with:
           script: |
             const commits = process.env.COMMITS
-            .split('__COMMIT__')
-            .map(c => c.trim())
-            .filter(Boolean);
+              .split('__COMMIT__')
+              .map(c => c.trim())
+              .filter(Boolean);
 
-            const clean = (str) => {
-              if (!str) return "";
-              const trimmed = str.trim();
-              const isPlaceHolder = ["n/a", "- n/a", "no overview provided.", "-"].includes(trimmed.toLowerCase());
-              return isPlaceHolder ? "" : trimmed;
+            const typesMap = {
+              feat: '✨ Features',
+              fix: '🐛 Fixes',
+              perf: '⚡ Performance',
+              refactor: '♻️ Refactor',
+              docs: '📝 Documentation',
+              chore: '🛠 Chore',
+              test: '✅ Tests',
+              ci: '⚙️ CI',
+              style: '🎨 Style',
+              build: '🏗 Build'
             };
 
-            let overviewSet = new Set();
-            let featuresSet = new Set();
-            let structureSet = new Set();
-            let responsibilitiesSet = new Set();
+            const sections = {};
 
             commits.forEach(commit => {
-              if (!commit.trim()) return;
+              const headerMatch = commit.match(/^(\w+)(\(.+\))?:\s*(.+)$/);
+              if (!headerMatch) return;
+              const type = headerMatch[1];
+              const scope = headerMatch[2] || '';
+              const subject = headerMatch[3];
 
-              const rawOverview = commit.split('Overview:')[1]?.split('Features:')[0];
-              const rawFeatures = commit.split('Features:')[1]?.split('Structure:')[0];
-              const rawStructure = commit.split('Structure:')[1]?.split('Responsibilities:')[0];
-              const rawResp = commit.split('Responsibilities:')[1];
-
-              if (clean(rawOverview)) overviewSet.add(clean(rawOverview));
-              
-              const processLines = (raw, set) => {
-                if (clean(raw)) {
-                  raw.split('\n').forEach(line => {
-                    const entry = clean(line.replace(/^[-*•]\s*/, '')); // Strip existing bullets
-                    if (entry) set.add(entry);
-                  });
-                }
-              };
-
-              processLines(rawFeatures, featuresSet);
-              processLines(rawStructure, structureSet);
-              processLines(rawResp, responsibilitiesSet);
+              const title = typesMap[type] || type;
+              if (!sections[title]) sections[title] = [];
+              sections[title].push(`${subject} ${scope}`.trim());
             });
 
-            const body = `
-            ## Overview
-            ${Array.from(overviewSet).join('\n\n') || "_No overview provided._"}
-
-            ## Features
-            ${Array.from(featuresSet).map(f => `* ${f}`).join('\n') || "_No new features listed._"}
-
-            ## Structure
-            ${Array.from(structureSet).map(s => `* ${s}`).join('\n') || "_No structure changes documented._"}
-
-            ## Responsibilities
-            ${Array.from(responsibilitiesSet).map(r => `* ${r}`).join('\n') || "_No specific responsibilities noted._"}
-
-            ---
-            _Generated from commit history by GitHub Actions 🤖_
-            `.replace(/^\s+/gm, ''); // Cleans up the indentation for markdown
+            const body = Object.entries(sections)
+              .map(([title, items]) => `## ${title}\n${items.map(i => `* ${i}`).join('\n')}`)
+              .join('\n\n') || '_No conventional commits found._';
 
             await github.rest.pulls.update({
               owner: context.repo.owner,
@@ -101,3 +84,76 @@ jobs:
               pull_number: context.payload.pull_request.number,
               body: body
             });
+
+      # -------------------------
+      # Update CHANGELOG.md
+      # -------------------------
+      - name: Update CHANGELOG.md
+        run: |
+          CHANGELOG="CHANGELOG.md"
+          TEMP_FILE=$(mktemp)
+
+          echo "## [Unreleased] - $(date +%Y-%m-%d)" > "$TEMP_FILE"
+
+          echo "$COMMITS" | while read -r commit; do
+            HEADER=$(echo "$commit" | head -n1)
+            TYPE=$(echo "$HEADER" | grep -o '^[a-z]\+')
+            SUBJECT=$(echo "$HEADER" | sed -E 's/^[a-z]+(\(.+\))?: //')
+            case $TYPE in
+              feat) echo "- ✨ $SUBJECT" >> "$TEMP_FILE" ;;
+              fix) echo "- 🐛 $SUBJECT" >> "$TEMP_FILE" ;;
+              perf) echo "- ⚡ $SUBJECT" >> "$TEMP_FILE" ;;
+              refactor) echo "- ♻️ $SUBJECT" >> "$TEMP_FILE" ;;
+              docs) echo "- 📝 $SUBJECT" >> "$TEMP_FILE" ;;
+              chore) echo "- 🛠 $SUBJECT" >> "$TEMP_FILE" ;;
+              test) echo "- ✅ $SUBJECT" >> "$TEMP_FILE" ;;
+              ci) echo "- ⚙️ $SUBJECT" >> "$TEMP_FILE" ;;
+              build) echo "- 🏗 $SUBJECT" >> "$TEMP_FILE" ;;
+            esac
+          done
+
+          cat "$CHANGELOG" >> "$TEMP_FILE"
+          mv "$TEMP_FILE" "$CHANGELOG"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$CHANGELOG"
+          git commit -m "chore: update CHANGELOG for PR #${{ github.event.pull_request.number }}" || echo "No changes to commit"
+          git push origin HEAD:${{ github.head_ref }}
+
+      # -------------------------
+      # 5️⃣ Auto-label PR
+      # -------------------------
+      - name: Auto-label PR
+        uses: actions/github-script@v8
+        env:
+          COMMITS: ${{ env.COMMITS }}
+        with:
+          script: |
+            const commits = process.env.COMMITS.split('__COMMIT__').map(c => c.trim()).filter(Boolean);
+            const labels = new Set();
+
+            commits.forEach(commit => {
+              const match = commit.match(/^(\w+)(\(.+\))?:/);
+              if (!match) return;
+              const type = match[1];
+              switch(type) {
+                case 'feat': labels.add('✨ feature'); break;
+                case 'fix': labels.add('🐛 fix'); break;
+                case 'perf': labels.add('⚡ perf'); break;
+                case 'refactor': labels.add('♻️ refactor'); break;
+                case 'docs': labels.add('📝 docs'); break;
+                case 'chore': labels.add('🛠 chore'); break;
+                case 'test': labels.add('✅ test'); break;
+                case 'ci': labels.add('⚙️ ci'); break;
+              }
+            });
+
+            if (labels.size) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: Array.from(labels)
+              });
+            }
