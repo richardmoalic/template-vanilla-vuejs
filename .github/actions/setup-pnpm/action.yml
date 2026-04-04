@@ -1,6 +1,11 @@
 name: 'Setup Node + pnpm'
 description: 'Unified setup for pnpm with multi-layer caching'
 
+env:
+    CACHE_PREFIX: ci
+    CACHE_VERSION: v1
+
+
 inputs:
   node-version:
     description: 'Node version'
@@ -15,6 +20,14 @@ runs:
     - uses: pnpm/action-setup@v5
       with:
         version: 9
+
+    - name: Set Cache Variables
+      shell: bash
+      run: |
+        PREFIX=$([ "$ACT" = "true" ] && echo "act" || echo "ci")
+        echo "CACHE_PREFIX=${PREFIX}-v1" >> $GITHUB_ENV
+        echo "VITE_CACHE_DIR=./cache/vite_cache" >> $GITHUB_ENV
+        echo "VITEST_CACHE_DIR=./cache/vitest_cache" >> $GITHUB_ENV
 
     - uses: actions/setup-node@v4
       with:
@@ -31,36 +44,31 @@ runs:
     - uses: actions/cache@v4
       with:
         path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-        key: ${{ runner.os }}-node-${{ inputs.node-version }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-node-${{ inputs.node-version }}-pnpm-store-
+          ${{ env.CACHE_PREFIX }}-${{ runner.os }}-pnpm-store-
 
-    - name: Cache node_modules
-      uses: actions/cache@v4
-      with:
-        path: node_modules
-        key: ${{ runner.os }}-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-modules-
 
     # Vite/Vitest Cache
     - uses: actions/cache@v4
+      if: github.event.pull_request.head.repo.fork == false
       with:
         path: |
-          node_modules/.vite
-          .vitest
-        key: ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: |
+          ${{ env.VITE_CACHE_DIR }}
+          ${{ env.VITEST_CACHE_DIR }}
+        key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-build
+          ${{ env.CACHE_PREFIX }}-${{ runner.os }}-build-
 
     # Playwright cache
     - name: Cache Playwright
       uses: actions/cache@v4
       with:
         path: ~/.cache/ms-playwright
-        key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+        key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-playwright-
+          ${{ env.CACHE_PREFIX }}-${{ runner.os }}-playwright-
 
     # Prefetch
     - name: Prefetch deps
@@ -73,3 +81,11 @@ runs:
       if: ${{ inputs.install == 'true' }}
       shell: bash
       run: pnpm install --frozen-lockfile --prefer-offline
+      env:
+        VITE_CACHE_DIR: ${{ env.VITE_CACHE_DIR }}
+        VITEST_CACHE_DIR: ${{ env.VITEST_CACHE_DIR }}
+
+    - name: Fix permissions
+      shell: bash
+      run: |
+        chmod -R u+rwX .

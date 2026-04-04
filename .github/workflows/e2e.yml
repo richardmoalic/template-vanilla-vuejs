@@ -44,12 +44,16 @@ jobs:
         continue-on-error: true
 
       - name: Upload Playwright report
-        if: always()
+        if: ${{ !env.ACT && steps.detect.outputs.has_tests == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report
           if-no-files-found: ignore
+
+      - name: Show report (local)
+        if: ${{ env.ACT }}
+        run: ls -la playwright-report || true
 
       - name: Set result
         id: set-result
@@ -62,3 +66,7 @@ jobs:
             echo "result=failure" >> $GITHUB_OUTPUT
             exit 1
           fi
+
+      - name: Fail if tests failed
+        if: steps.set-result.outputs.result == 'failure'
+        run: exit 1

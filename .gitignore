@@ -44,3 +44,5 @@ build.zip
 CHANGELOG.md.bak
 
 .secrets
+
+cache/

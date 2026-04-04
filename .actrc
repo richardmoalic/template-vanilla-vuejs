@@ -1,1 +1,3 @@
 --pull=false
+--network host
+--env NODE_OPTIONS=--no-deprecation

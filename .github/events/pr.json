@@ -1,7 +1,7 @@
 {
   "pull_request": {
     "number": 1,
-    "base": { "sha": "main", "ref": "main" },
-    "head": { "sha": "HEAD", "ref": "feature-branch" }
+    "base": { "sha": "main", "ref": "1426321e56c0346ce8fb4888ca76daaf59b13fc3" },
+    "head": { "sha": "HEAD", "ref": "62fd9412491573b83ae860f79d15b314da3b1296" }
   }
 }

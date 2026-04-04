@@ -35,6 +35,7 @@ export default defineConfig(({ mode }) => {
       include: ['vue'],
     },
 
+    cacheDir: process.env.VITE_CACHE_DIR || 'node_modules/.vite',
     define: {
       __APP_ENV__: JSON.stringify(env.VITE_APP_ENV),
     },

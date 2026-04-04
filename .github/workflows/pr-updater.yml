@@ -27,8 +27,17 @@ jobs:
       - name: Extract commit data
         id: extract_commits
         run: |
-          COMMITS=$(git log ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} \
-          --pretty=format:"%s%n%b%n__COMMIT__")
+          if [ -n "${{ github.event.pull_request.base.sha }}" ]; then
+            RANGE="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+          else
+            echo "⚠️ No PR context (act), fallback to last commits"
+            RANGE="HEAD~20..HEAD"
+          fi
+
+          COMMITS=$(git log \
+          --pretty=format:"%s%n%b%n__COMMIT__" \
+          $RANGE)
+
           echo "COMMITS<<EOF" >> $GITHUB_ENV
           echo "$COMMITS" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
@@ -90,6 +99,11 @@ jobs:
       # -------------------------
       - name: Update CHANGELOG.md
         run: |
+          if [ -z "$COMMITS" ]; then
+            echo "No commits → skipping changelog"
+            exit 0
+          fi
+
           CHANGELOG="CHANGELOG.md"
           TEMP_FILE=$(mktemp)
 
