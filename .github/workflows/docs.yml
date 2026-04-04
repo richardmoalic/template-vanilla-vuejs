@@ -1,0 +1,59 @@
+name: CI, DOCS
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+env:
+  HUSKY: 0
+
+# -----------------------------------
+# DOCS (VERSIONED)
+# -----------------------------------
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-pnpm
+
+      # Use version from release job
+      - name: Set version
+        run: echo "VERSION=${{ needs.release.outputs.version }}" >> $GITHUB_ENV
+
+      # Generate docs
+      - name: Generate docs
+        env:
+          CI: true
+          BROWSER: none
+        run: |
+          export DOC_VERSION=${{ needs.release.outputs.version }}
+          BROWSER=none CI=true pnpm docs:generate
+
+      # Version docs
+      - name: Version docs
+        run: |
+          mkdir -p versioned/${VERSION}
+          cp -r docs/* versioned/${VERSION}/
+
+          rm -rf versioned/latest
+          cp -r versioned/${VERSION} versioned/latest
+
+      # Deploy docs
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./versioned
+          publish_branch: gh-pages
+          destination_dir: docs
+          keep_files: true

@@ -1,0 +1,41 @@
+name: CI, LINT AND TEST
+
+on:
+  workflow_call:
+    outputs:
+      unit:
+        value: ${{ jobs.unit.result }}
+      lint:
+        value: ${{ jobs.lint.result }}
+
+env:
+  HUSKY: 0
+
+jobs:
+  # -----------------------------------
+  # LINT
+  # -----------------------------------
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-pnpm
+
+      - run: pnpm lint:css
+      - run: pnpm lint:check
+      - run: pnpm prettier --check . --log-level warn
+
+  # -----------------------------------
+  # UNIT TESTS
+  # -----------------------------------
+  unit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-pnpm
+
+      - run: pnpm test:coverage

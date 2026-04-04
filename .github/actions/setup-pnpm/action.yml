@@ -1,0 +1,75 @@
+name: 'Setup Node + pnpm'
+description: 'Unified setup for pnpm with multi-layer caching'
+
+inputs:
+  node-version:
+    description: 'Node version'
+    default: '24'
+  install:
+    description: 'Run pnpm install?'
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: pnpm/action-setup@v5
+      with:
+        version: 9
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        node-version-file: '.nvmrc'
+        cache: 'pnpm'
+
+    # Global pnpm Store Cache
+    - name: Get pnpm store path
+      id: pnpm-cache
+      shell: bash
+      run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+    - uses: actions/cache@v4
+      with:
+        path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+        key: ${{ runner.os }}-node-${{ inputs.node-version }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ inputs.node-version }}-pnpm-store-
+
+    - name: Cache node_modules
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-modules-
+
+    # Vite/Vitest Cache
+    - uses: actions/cache@v4
+      with:
+        path: |
+          node_modules/.vite
+          .vitest
+        key: ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-build
+
+    # Playwright cache
+    - name: Cache Playwright
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-playwright-
+
+    # Prefetch
+    - name: Prefetch deps
+      if: ${{ inputs.install == 'true' }}
+      shell: bash
+      run: pnpm fetch
+
+    # Install
+    - name: Install dependencies
+      if: ${{ inputs.install == 'true' }}
+      shell: bash
+      run: pnpm install --frozen-lockfile --prefer-offline

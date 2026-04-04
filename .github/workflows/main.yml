@@ -1,0 +1,60 @@
+name: 'CI MAIN BRANCH'
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HUSKY: 0
+
+jobs:
+  changes:
+    uses: './.github/workflows/changes.yml'
+
+  debug-changes:
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "APP: ${{ needs.changes.outputs.app }}"
+          echo "DOCS: ${{ needs.changes.outputs.docs }}"
+
+  validate:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    uses: './.github/workflows/ci.yml'
+
+  e2e:
+    needs: [changes, validate]
+    uses: './.github/workflows/e2e.yml'
+
+  release:
+    needs: [validate, e2e]
+    if: |
+      always() &&
+      needs.changes.outputs.app == 'true' &&
+      (needs.validate.outputs.result == 'success') &&
+      (needs.e2e.outputs.result == 'success' || needs.e2e.outputs.result == 'skipped')
+    uses: './.github/workflows/release.yml'
+
+  docs:
+    needs: [release]
+    if: needs.changes.outputs.docs == 'true'
+    uses: './.github/workflows/docs.yml'
+    with:
+      version: ${{ needs.release.outputs.version }}
+
+  deploy:
+    needs: [release]
+    uses: './.github/workflows/deploy.yml'
+
+  pr-update:
+    needs: [docs, deploy]
+    uses: './.github/workflows/pr-updater.yml'
