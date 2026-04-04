@@ -4,6 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+  workflow_call:
+
 jobs:
   update-pr:
     runs-on: ubuntu-latest

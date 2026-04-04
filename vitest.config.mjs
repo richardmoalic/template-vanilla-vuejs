@@ -20,9 +20,7 @@ export default defineConfig({
   test: {
     ...getTestConfig(),
     coverage: getCoverageConfig(),
-    cache: {
-      dir: process.env.VITEST_CACHE_DIR || 'node_modules/.vitest',
-    },
+    cacheDir: process.env.VITEST_CACHE_DIR || 'node_modules/.vitest',
   },
 
   optimizeDeps: {
