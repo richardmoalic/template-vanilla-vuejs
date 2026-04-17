@@ -71,6 +71,7 @@
 name: 'CI MAIN BRANCH'
 
 permissions:
+  id-token: write
   contents: write
   pull-requests: write
   issues: write
@@ -126,7 +127,7 @@ jobs:
   post-release-security:
     needs: [release]
     uses: './.github/workflows/sbom.yml'
-    
+
   docs:
     needs: [release]
     if: needs.changes.outputs.docs == 'true'

@@ -18,7 +18,7 @@ download_file() {
     return 0
   fi
   
-  run curl \
+  run "[Downloading]" curl \
   -L \
   --fail \
   --retry 5 \
