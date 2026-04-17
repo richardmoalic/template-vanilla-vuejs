@@ -79,7 +79,7 @@ jobs:
 
         if: env.ACT != 'true'
         with:
-          machine-identity-id: ${{ vars.INFISICAL_MACHINE_ID }}
+          identity-id: ${{ vars.INFISICAL_MACHINE_ID }}
           method: oidc
           project-slug: 'template-v-vuejs'
           env-slug: 'prod'
