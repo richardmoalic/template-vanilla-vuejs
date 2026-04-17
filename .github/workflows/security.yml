@@ -112,14 +112,16 @@ jobs:
         run: bash .github/scripts/trufflehog.sh
 
       - name: Upload Gitleaks Results
-        if: always() && github.event_name != 'pull_request' && env.ACT != 'true'
+        if: always() && github.event_name != 'pull_request' && env.ACT != 'true' &&
+            hashFiles('gitleaks.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: gitleaks.sarif
           category: gitleaks
 
       - name: Upload TruffleHog Results
-        if: always() && github.event_name != 'pull_request' && env.ACT != 'true'
+        if: always() && github.event_name != 'pull_request' && env.ACT != 'true' &&
+            hashFiles('trufflehog.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trufflehog.sarif

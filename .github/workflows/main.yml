@@ -71,7 +71,9 @@
 name: 'CI MAIN BRANCH'
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
+  issues: write
   security-events: write
 on:
   push:
@@ -88,7 +90,11 @@ env:
   HUSKY: 0
 
 jobs:
+  security:
+    uses: './.github/workflows/security.yml'
+
   changes:
+    needs: security
     uses: './.github/workflows/changes.yml'
 
   debug-changes:

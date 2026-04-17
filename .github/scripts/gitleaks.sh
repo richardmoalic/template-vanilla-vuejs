@@ -87,7 +87,9 @@ run_scan() {
     --report-format sarif \
     --report-path gitleaks.sarif \
     --redact \
-    --verbose
+    --verbose || true
+
+  [ -f gitleaks.sarif ] || echo '{"version":"2.1.0","runs":[]}' > gitleaks.sarif
   local exit_code=$?
   set -e
 

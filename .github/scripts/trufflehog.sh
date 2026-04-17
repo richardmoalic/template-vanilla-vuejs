@@ -85,7 +85,7 @@ if [ -s trufflehog.json ]; then
     }]
   }' trufflehog.json > trufflehog.sarif
 else
-  log_info '{"runs":[]}' > trufflehog.sarif
+  echo '{"version":"2.1.0","runs":[]}' > trufflehog.sarif
 fi
 
 if [ "$EXIT_CODE" -eq 0 ]; then
