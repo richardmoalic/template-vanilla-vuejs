@@ -25,19 +25,12 @@ install_syft() {
 
 generate_SBOM(){
   
-if [ -f package.json ]; then
+  PROJ_VER="${OVERRIDE_VERSION:-$(node -p "require('./package.json').version" 2>/dev/null || echo "0.0.0")}"
   PROJ_NAME=$(node -p "require('./package.json').name" 2>/dev/null || echo "unknown")
-  PROJ_VER=$(node -p "require('./package.json').version" 2>/dev/null || echo "0.0.0")
-else
-  PROJ_NAME="unknown"
-  PROJ_VER="0.0.0"
-fi
 
 log_info "sbom" "Project: $PROJ_NAME@$PROJ_VER"
 
-log_start "SBOM Generation"
-
-run syft dir:. \
+run "[Generating SBOM]" syft dir:. \
   --source-name "$PROJ_NAME" \
   --source-version "$PROJ_VER" \
   -o cyclonedx-json=bom.json

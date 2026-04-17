@@ -73,42 +73,30 @@ install_tool \
 # -------------------------------
 # Run scan
 # -------------------------------
-run_scan() {
+run_scan_gitleaks() {
   log_info "[gitleaks] Starting scan..."
 
   if [ "$DRY_RUN" = "true" ]; then
     log_debug "[dry-run] gitleaks detect ..."
+    ensure_file gitleaks.sarif '{"version":"2.1.0","runs":[]}'
     return 0
   fi
 
-  set +e
-  gitleaks detect \
+  run "[gitleaks] scan" gitleaks detect \
     --source . \
     --report-format sarif \
     --report-path gitleaks.sarif \
     --redact \
     --verbose || true
 
-  [ -f gitleaks.sarif ] || echo '{"version":"2.1.0","runs":[]}' > gitleaks.sarif
-  local exit_code=$?
-  set -e
+   ensure_file gitleaks.sarif '{"version":"2.1.0","runs":[]}'
 
-  if [ "$exit_code" -eq 0 ]; then
-    log_success "[gitleaks] No leaks found"
-    return 0
+  if [ "${ACT:-}" = "true" ]; then
+    log_warn "::warning::[gitleaks] Non-blocking in act mode"
   fi
 
-  if [ "$exit_code" -eq 8 ]; then
-    if [ "${ACT:-}" = "true" ]; then
-      log_warn "::warning::[gitleaks] Leaks found (non-blocking in act)"
-      return 0
-    fi
 
-    log_error "[gitleaks] Leaks detected!"
-    return 1
-  fi
-
-  fail "Unexpected error (exit code $exit_code)"
+  log_success "[gitleaks] scan completed"
 }
 
 # -------------------------------

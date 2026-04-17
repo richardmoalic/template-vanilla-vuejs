@@ -123,6 +123,10 @@ jobs:
       (needs.e2e.outputs.result == 'success' || needs.e2e.outputs.result == 'skipped')
     uses: './.github/workflows/release.yml'
 
+  post-release-security:
+    needs: [release]
+    uses: './.github/workflows/sbom.yml'
+    
   docs:
     needs: [release]
     if: needs.changes.outputs.docs == 'true'

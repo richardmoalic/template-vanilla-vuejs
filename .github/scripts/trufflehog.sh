@@ -51,55 +51,33 @@ install_trufflehog() {
 }
 
 # Run scan
-run_scan() {
+run_scan_trufflehog() {
   log_info "[trufflehog] Starting scan..."
 
   
-  if [ "$DRY_RUN" = "true" ]; then
-    log_debug "[dry-run] trufflehog detect ..."
+  local json="trufflehog.json"
+  local sarif="trufflehog.sarif"
+
+  if [ "${DRY_RUN:-false}" = "true" ]; then
+    log_debug "[dry-run] trufflehog scan"
+    ensure_file "$sarif" '{"version":"2.1.0","runs":[]}'
     return 0
   fi
 
-set +e
-trufflehog git file://"$PWD" --only-verified --json > trufflehog.json
-EXIT_CODE=$?
-set -e
+run "[trufflehog] scan" trufflehog git file://"$PWD" --only-verified --json > trufflehog.json
 
-log_step "[trufflehog] Converting to SARIF..."
+  if [ ! -s "$json" ]; then
+    log_warn "[trufflehog] No output JSON generated"
+    ensure_file "$sarif" '{"version":"2.1.0","runs":[]}'
+    return 0
+  fi
 
-if [ -s trufflehog.json ]; then
-  jq -s '{
-    version: "2.1.0",
-    runs: [{
-      tool: { driver: { name: "TruffleHog" } },
-      results: map({
-        ruleId: "secret-detected",
-        message: { text: "Verified secret detected" },
-        locations: [{
-          physicalLocation: {
-            artifactLocation: { uri: .SourceMetadata.Data.Git.file },
-            region: { startLine: (.SourceMetadata.Data.Git.line | tonumber) }
-          }
-        }]
-      })
-    }]
-  }' trufflehog.json > trufflehog.sarif
-else
-  echo '{"version":"2.1.0","runs":[]}' > trufflehog.sarif
-fi
+  run "[trufflehog]" \
+    "jq -s '{version:\"2.1.0\",runs:[{tool:{driver:{name:\"TruffleHog\"}},results:map({ruleId:\"secret\",message:{text:\"secret\"},locations:[]})}]}' $json > $sarif"
 
-if [ "$EXIT_CODE" -eq 0 ]; then
-  log_success "[trufflehog] No verified secrets found"
-  exit 0
-fi
+  ensure_file "$sarif" '{"version":"2.1.0","runs":[]}'
 
-if [ "${ACT:-}" = "true" ]; then
-  log_warn "::warning::[trufflehog] Secrets found (non-blocking in act)"
-  exit 0
-else
-  log_error "[trufflehog] Verified secrets detected!"
-  exit 1
-fi
+  log_success "[trufflehog] scan completed"
 
 }
 

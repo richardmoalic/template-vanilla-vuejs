@@ -44,60 +44,34 @@ now_ms() {
 }
 
 run() {
-
   local msg="$1"
   shift
-  local cmd=("$@")
+  local cmd="$*"
 
   log_start "run" "$msg"
 
-  if [ "$DRY_RUN" = "true" ]; then
-    log_info "run" "[dry-run] $*"
+  if [ "${DRY_RUN:-false}" = "true" ]; then
+    log_info "run" "[dry-run] $cmd"
     return 0
   fi
 
-  local start end duration status
-  start=$(now_ms)
+  local start end status
+  start=$(date +%s%3N)
 
-  "${cmd[@]}" 
+  bash -c "$cmd"
   status=$?
-  
-  end=$(now_ms)
-  duration=$((end - start))
 
+  end=$(date +%s%3N)
   local seconds
-  seconds=$(awk "BEGIN { printf \"%.2f\", $duration/1000 }")
+  seconds=$(awk "BEGIN { printf \"%.2f\", ($end-$start)/1000 }")
 
-  if [ $status -eq 0 ] ; then
-    log_done "run" "$msg (in ${seconds}s)"
+  if [ $status -eq 0 ]; then
+    log_done "run" "$msg (${seconds}s)"
   else
-    log_error "run" "$msg failed (in ${seconds}s)"
+    log_error "run" "$msg failed (${seconds}s)"
   fi
 
-  return "$status"
-}
-
-fail() {
-  log_error "core" "$*"
-  exit 1
-}
-
-time_block() {
-  local name="$1"
-  shift
-
-  local start end duration
-  start=$(now_ms)
-
-  "$@"
-
-  end=$(now_ms)
-  duration=$((end - start))
-
-  local seconds
-  seconds=$(awk "BEGIN { printf \"%.2f\", $duration/1000 }")
-
-  log_info "$name" "Completed in ${seconds}s"
+  return $status
 }
 
 
@@ -110,4 +84,13 @@ core_init() {
   esac
 
   log_debug "core" "Initialized (CACHE_DIR=$CACHE_DIR, BIN_DIR=$BIN_DIR)"
+}
+
+ensure_file() {
+  local file="$1"
+  local fallback="$2"
+
+  if [ ! -s "$file" ]; then
+    echo "$fallback" > "$file"
+  fi
 }

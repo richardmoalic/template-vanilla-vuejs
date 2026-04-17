@@ -1,0 +1,38 @@
+name: Security Scan
+
+permissions:
+  contents: read
+  security-events: write
+
+on:
+  workflow_call:
+    outputs:
+      generate-sbom:
+        value: ${{ jobs.unit.result }}
+
+env:
+  HUSKY: 0
+
+jobs:
+  generate-sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.new_tag }}
+
+      - name: Install Tools
+        run: bash .github/scripts/security.sh install
+
+      - name: Add local bin to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Generate Accurate SBOM
+        run: bash .github/scripts/security.sh sbom ${{ needs.release.outputs.version }}
+
+      - name: Upload SBOM Artifact
+        if: env.ACT != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: software-bill-of-materials
+          path: bom.json
