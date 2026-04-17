@@ -91,7 +91,11 @@ env:
   HUSKY: 0
 
 jobs:
+  
   security:
+  - name: Debug OIDC token
+    run: |
+      echo "${ACTIONS_ID_TOKEN_REQUEST_URL}"
     uses: './.github/workflows/security.yml'
 
   changes:
