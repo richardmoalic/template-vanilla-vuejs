@@ -1,4 +1,56 @@
+# ==========================================================
+# WORKFLOW: CI - Documentation (Versioned)
+# TOOL: GitHub Actions + GitHub Pages
+# DOCS:
+#   - https://docs.github.com/en/actions
+#   - https://github.com/peaceiris/actions-gh-pages
+#
+# PURPOSE:
+#   Generate and deploy versioned documentation tied to releases.
+#
+# EXECUTION:
+#   - Trigger:
+#       • workflow_call → invoked after release job
+#   - MODE:
+#       • NON-BLOCKING → docs failure should not block deployment
+#
+# INPUTS:
+#   - version → provided by release workflow
+#
+# DEPENDENCIES:
+#   - release.yml → provides version
+#   - package.json scripts:
+#       • docs:generate
+#   - GitHub Pages (gh-pages branch)
+#
+# USED BY:
+#   - main CI pipeline → after release
+#
+# VERSIONING STRATEGY:
+#   - versioned/<version>/ → immutable release docs
+#   - versioned/latest → latest stable alias
+#
+# ARTIFACT FLOW:
+#   source → generate → version → deploy
+#
+# CONTEXT:
+#   - Stack: Vite + pnpm + Vue/React
+#   - Static docs output
+#
+# SAFETY:
+#   - keep_files: true → preserve historical versions
+#
+# MAINTENANCE:
+#   - Ensure docs:generate stays deterministic
+#   - Clean old versions periodically if needed
+#   - Owner: @gituser
+# ==========================================================
+
 name: CI, DOCS
+
+permissions:
+  contents: read
+  security-events: write
 
 on:
   workflow_call:
@@ -23,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
       - uses: ./.github/actions/setup-pnpm
 

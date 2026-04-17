@@ -1,4 +1,56 @@
+# ==========================================================
+# WORKFLOW: CI - Deploy
+# TOOL: GitHub Actions + GitHub Pages
+# DOCS:
+#   - https://docs.github.com/en/actions
+#   - https://github.com/peaceiris/actions-gh-pages
+#
+# PURPOSE:
+#   Deploy built application to GitHub Pages using artifacts
+#   generated from the release pipeline.
+#
+# EXECUTION:
+#   - Trigger:
+#       • workflow_call → invoked after successful release
+#   - MODE:
+#       • BLOCKING → deployment must succeed for pipeline completion
+#
+# OUTPUTS:
+#   - result → deployment job status (success / failure)
+#
+# DEPENDENCIES:
+#   - release.yml → produces build artifacts (dist/)
+#   - actions/download-artifact → retrieves build
+#   - GitHub Pages (gh-pages branch)
+#
+# USED BY:
+#   - main CI pipeline → final deployment step
+#
+# DEPLOYMENT STRATEGY:
+#   - main branch → root deployment
+#   - develop branch → deployed under /develop (preview env)
+#
+# ARTIFACT FLOW:
+#   release.yml → dist → deploy.yml → GitHub Pages
+#
+# CONTEXT:
+#   - Static site (Vite build output)
+#   - No rebuild (uses prebuilt artifacts)
+#
+# SAFETY:
+#   - keep_files: true → preserves existing deployments
+#
+# MAINTENANCE:
+#   - Ensure artifact names match release workflow
+#   - Verify branch strategy (main vs develop)
+#   - Owner: @gituser
+# ==========================================================
+
 name: CI, DEPLOY
+
+permissions:
+  contents: read
+  security-events: write
 
 on:
   workflow_call:

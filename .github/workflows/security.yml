@@ -1,0 +1,148 @@
+# ==========================================================
+# WORKFLOW: Security Scan
+# TOOL: GitHub Actions
+# DOCS: https://docs.github.com/en/actions
+#
+# PURPOSE:
+#   Detect secrets and sensitive data leaks in the repository
+#   using complementary scanning strategies.
+#
+# EXECUTION:
+#   - Trigger:
+#       • pull_request → validate before merge
+#       • push (main) → protect production branch
+#       • schedule → nightly deep scan (02:00 UTC)
+#       • workflow_dispatch → manual trigger
+#   - MODE:
+#       • Gitleaks → non-blocking in local (act), blocking in CI
+#       • TruffleHog → blocking on verified secrets
+#
+# SCANNERS:
+#   - Gitleaks:
+#       • Pattern-based detection (fast)
+#       • Outputs SARIF (GitHub Security integration)
+#   - TruffleHog:
+#       • High-entropy + verified secrets (API validation)
+#       • Scans full git history
+#
+# DEPENDENCIES:
+#   - .gitleaks.toml → custom rules & allowlist
+#   - Docker (optional) → fallback execution
+#   - actions/cache → TruffleHog binary caching
+#
+# USED BY:
+#   - GitHub Security tab (SARIF upload)
+#   - CI pipeline → prevents secret leaks
+#
+# CONTEXT:
+#   - Stack: Vite + pnpm + Vue/React
+#   - Optimized for monorepo / node_modules heavy projects
+#
+# PERFORMANCE:
+#   - Gitleaks → fast (runs every PR)
+#   - TruffleHog → cached binary (avoids Docker pull overhead)
+#
+# MAINTENANCE:
+#   - Update scanner versions regularly
+#   - Review allowlists when false positives appear
+#   - Owner: @gituser
+# ==========================================================
+
+name: Security Scan
+
+permissions:
+  id-token: write
+  contents: read
+  security-events: write
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  vulnerability-scan:
+    name: Secret & Supply Chain Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
+
+      - name: Setup Security Tools
+        env:
+          DRY_RUN: false
+        run: bash .github/scripts/setup-tools.sh
+
+      - name: Add local bin to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Load secrets
+        uses: infisical/secrets-action@v1.0.8
+        # Only run this in the real GitHub Cloud (OIDC doesn't work in act)
+        if: env.ACT != 'true'
+        with:
+          machine-identity-id: ${{ vars.INFISICAL_MACHINE_ID }}
+          project-slug: 'template-v-vuejs'
+          env-slug: 'prod'
+
+      - name: Load secrets (Local Act only)
+        if: env.ACT == 'true'
+        run: |
+          infisical run \
+          --projectId "$INFISICAL_PROJECT_ID" \
+          --env "$INFISICAL_ENV" \
+          -- env
+        env:
+          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
+          INFISICAL_PROJECT_ID: your-project-id
+          INFISICAL_ENV: prod
+
+      - name: Run Gitleaks
+        id: gitleaks
+        run: bash .github/scripts/gitleaks.sh
+
+      - name: Run TruffleHog
+        id: trufflehog
+        run: bash .github/scripts/trufflehog.sh
+
+      - name: Upload Gitleaks Results
+        if: always() && github.event_name != 'pull_request' && env.ACT != 'true'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks
+
+      - name: Upload TruffleHog Results
+        if: always() && github.event_name != 'pull_request' && env.ACT != 'true'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trufflehog.sarif
+          category: trufflehog
+      
+  generate-sbom:
+    runs-on: ubuntu-latest
+    needs: vulnerability-scan
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Security Tools
+        run: bash .github/scripts/setup-tools.sh
+
+      - name: Add local bin to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Run SBOM Generation
+        run: bash ./.github/scripts/install-syft.sh
+
+      - name: Upload SBOM Artifact
+        if: env.ACT != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: software-bill-of-materials
+          path: bom.json

@@ -1,4 +1,62 @@
+# ==========================================================
+# WORKFLOW: CI - End-to-End Testing (E2E)
+# TOOL: GitHub Actions + Playwright
+# DOCS:
+#   - https://docs.github.com/en/actions
+#   - https://playwright.dev/docs/ci
+#
+# PURPOSE:
+#   Validate full application behavior through browser-based tests.
+#
+# EXECUTION:
+#   - Trigger:
+#       • workflow_call → invoked after validation (lint/unit)
+#   - MODE:
+#       • CONDITIONAL BLOCKING:
+#           - If tests exist → BLOCKING
+#           - If no tests → SKIPPED
+#
+# OUTPUTS:
+#   - result → success | failure | skipped
+#
+# DEPENDENCIES:
+#   - package.json:
+#       • test:e2e
+#   - Playwright Docker image
+#
+# USED BY:
+#   - release.yml → ensures app works before release
+#
+# TEST STRATEGY:
+#   - Detect presence of E2E tests dynamically
+#   - Run tests only if they exist
+#
+# RUNTIME:
+#   - Containerized (Playwright official image)
+#   - Ensures consistent browser environment
+#
+# DEBUGGING:
+#   - Upload HTML report (CI)
+#   - Local: logs + report folder
+#
+# CONTEXT:
+#   - Stack: Vite + pnpm + Vue/React
+#   - Tests: tests/e2e/**/*.spec.*
+#
+# PERFORMANCE:
+#   - Skips execution if no tests detected
+#
+# MAINTENANCE:
+#   - Keep Playwright version updated
+#   - Ensure test stability (avoid flaky tests)
+#   - Owner: @gituser
+# ==========================================================
+
 name: CI, E2E
+
+permissions:
+  contents: read
+  security-events: write
 
 on:
   workflow_call:
@@ -16,18 +74,23 @@ env:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    # Playwright container
     container:
       image: mcr.microsoft.com/playwright:v1.58.2-jammy
-      options: --init --ipc=host
+      options: --init --ipc=host --user 1000:1000
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/cache/playwright_cache
 
     outputs:
       result: ${{ steps.set-result.outputs.result }}
 
     steps:
+      # Checkout repository
       - uses: actions/checkout@v6
 
       - uses: ./.github/actions/setup-pnpm
 
+        # Detect if E2E tests exist
       - name: Detect E2E tests
         id: detect
         run: |
@@ -37,12 +100,14 @@ jobs:
             echo "has_tests=false" >> $GITHUB_OUTPUT
           fi
 
+      # Run E2E tests (non-blocking step)
       - name: Run E2E tests
         id: run-tests
         if: steps.detect.outputs.has_tests == 'true'
         run: pnpm test:e2e
         continue-on-error: true
 
+        # Upload Playwright report
       - name: Upload Playwright report
         if: ${{ !env.ACT && steps.detect.outputs.has_tests == 'true' }}
         uses: actions/upload-artifact@v4
@@ -51,10 +116,12 @@ jobs:
           path: playwright-report
           if-no-files-found: ignore
 
+      # Local debug (act)
       - name: Show report (local)
         if: ${{ env.ACT }}
         run: ls -la playwright-report || true
 
+        # Normalize result
       - name: Set result
         id: set-result
         run: |

@@ -1,3 +1,70 @@
+# ==========================================================
+# ACTION: Setup Node + pnpm (Unified Environment Bootstrap)
+# TYPE: Composite GitHub Action
+# TOOLING:
+#   - https://github.com/actions/setup-node
+#   - https://github.com/pnpm/action-setup
+#   - https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows
+#
+# PURPOSE:
+#   Provides a consistent, fast, and reproducible Node.js + pnpm
+#   environment across all workflows with multi-layer caching.
+#
+# FEATURES:
+#   1. Node.js setup (via .nvmrc or input override)
+#   2. pnpm installation (deterministic version)
+#   3. Multi-layer caching:
+#       • pnpm store (dependencies)
+#       • Vite cache (build optimization)
+#       • Vitest cache (test optimization)
+#       • Playwright cache (browser binaries)
+#   4. Prefetch + offline install strategy
+#
+# EXECUTION:
+#   - Used as a reusable action in workflows
+#   - Supports CI and local (act) environments
+#
+# INPUTS:
+#   - node-version:
+#       • Node.js version override (default: 24)
+#   - install:
+#       • Whether to run pnpm install (default: true)
+#
+# CACHE STRATEGY:
+#   - Prefix separation:
+#       • ci-* → GitHub Actions
+#       • act-* → local runs (act)
+#   - Keyed by:
+#       • OS
+#       • pnpm-lock.yaml hash
+#
+# PERFORMANCE OPTIMIZATION:
+#   - pnpm fetch → preloads dependencies
+#   - pnpm install --prefer-offline → faster installs
+#   - Layered caches → minimizes cold starts
+#
+# SAFETY:
+#   - Frozen lockfile → ensures reproducible builds
+#   - Fork protection → avoids unsafe cache sharing
+#
+# USED BY:
+#   - ci.yml → lint + unit
+#   - e2e.yml → tests
+#   - release.yml → build
+#   - docs.yml → docs generation
+#
+# CONTEXT:
+#   - Stack: Vite + pnpm + Vue/React
+#
+# KNOWN ISSUES:
+#   - Permissions mismatch in Docker/act → fixed via chmod
+#
+# MAINTENANCE:
+#   - Update Node / pnpm versions periodically
+#   - Bump CACHE_PREFIX when cache invalidation needed
+#   - Owner: @gituser
+# ==========================================================
+
 name: 'Setup Node + pnpm'
 description: 'Unified setup for pnpm with multi-layer caching'
 
@@ -14,31 +81,25 @@ runs:
   steps:
     - uses: pnpm/action-setup@v5
       with:
-        version: 9
+        version: 10.24.0
+
+    - name: Fix permissions
+      shell: bash
+      run: bash ./.github/scripts/permissions.sh
 
     - name: Set Cache Variables
       shell: bash
-      run: |
-        PREFIX=$([ "$ACT" = "true" ] && echo "act" || echo "ci")
-        echo "CACHE_PREFIX=${PREFIX}-v1" >> $GITHUB_ENV
-        echo "VITE_CACHE_DIR=./cache/vite_cache" >> $GITHUB_ENV
-        echo "VITEST_CACHE_DIR=./cache/vitest_cache" >> $GITHUB_ENV
+      run: bash ./.github/scripts/cache-vars.sh
 
     - uses: actions/setup-node@v4
       with:
-        node-version: ${{ inputs.node-version }}
         node-version-file: '.nvmrc'
         cache: 'pnpm'
 
-    # Global pnpm Store Cache
-    - name: Get pnpm store path
-      id: pnpm-cache
-      shell: bash
-      run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
+    # Pnpm Store Cache
     - uses: actions/cache@v4
       with:
-        path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+        path: ${{ env.PNPM_CACHE_DIR }}
         key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ env.CACHE_PREFIX }}-${{ runner.os }}-pnpm-store-
@@ -48,7 +109,6 @@ runs:
       if: github.event.pull_request.head.repo.fork == false
       with:
         path: |
-          path: |
           ${{ env.VITE_CACHE_DIR }}
           ${{ env.VITEST_CACHE_DIR }}
         key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -59,7 +119,7 @@ runs:
     - name: Cache Playwright
       uses: actions/cache@v4
       with:
-        path: ~/.cache/ms-playwright
+        path: ${{ env.PLAYWRIGHT_CACHE_DIR }}
         key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ env.CACHE_PREFIX }}-${{ runner.os }}-playwright-
@@ -68,18 +128,13 @@ runs:
     - name: Prefetch deps
       if: ${{ inputs.install == 'true' }}
       shell: bash
-      run: pnpm fetch
+      run: bash ./.github/scripts/pnpm-prefetch.sh
 
     # Install
     - name: Install dependencies
       if: ${{ inputs.install == 'true' }}
       shell: bash
-      run: pnpm install --frozen-lockfile --prefer-offline
+      run: bash ./.github/scripts/pnpm-install.sh
       env:
         VITE_CACHE_DIR: ${{ env.VITE_CACHE_DIR }}
         VITEST_CACHE_DIR: ${{ env.VITEST_CACHE_DIR }}
-
-    - name: Fix permissions
-      shell: bash
-      run: |
-        chmod -R u+rwX .

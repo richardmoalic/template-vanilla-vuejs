@@ -1,5 +1,45 @@
+# ==========================================================
+# HOOK TYPE: PRE-COMMIT (Client-Side Shield)
+# TOOL: Husky + lint-staged (v16.4.0)
+# VERSION: v9.1.7 (Stable)
+# PRE-COMMIT CONFIGURATION
+# DOCUMENTATION: https://typicode.github.io/husky
+# PURPOSE: Blocking invalid or insecure code before a commit is created
+# USE CASES:
+#   1. Quality: Auto-fix linting (ESLint) & formatting (Prettier).
+#   2. Security: Pattern-scan for secrets (Gitleaks) in staged diffs
+# EXECUTION:
+#   - MODE: Blocking (Exit code 1 on failure)
+#   - PERFORMANCE: Uses lint-staged to only scan modified files
+# SCOPE:
+#   - Staged files
+# CONTEXT: 
+#   - Stack: Vite + pnpm + Vue/React
+# SECURITY NOTES:
+#   - Prevents secrets from entering local history
+#   - WARNING: Can be bypassed via --no-verify
+#   - CAUTION: Husky is disable in CI/CD
+# DEPENDENCIES:
+#   - gitleaks.toml → Defines gitleaks rules
+#   - package.json#config.lint-staged → lint-staged config
+# MAINTENANCE:
+#   - Update version quarterly
+#   - Review if Update stylelint/eslint/prettier
+#   - Owner: @gituser
+# ==========================================================
+
+
 #!/bin/sh
 
 echo "Running pre-commit checks..."
 
+echo "Checking secrets..."
+gitleaks protect --staged --verbose
+
+if [ $? -ne 0 ]; then
+  echo "❌ Secrets detected! Commit blocked."
+  exit 1
+fi
+
+echo "Running lint checks..."
 pnpm lint-staged

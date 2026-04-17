@@ -8,8 +8,8 @@
   "keywords": [],
   "description": "",
   "engines": {
-    "node": ">=22.0.0",
-    "pnpm": ">=9.0.0"
+    "node": ">=24.0.0",
+    "pnpm": ">=10.0.0"
   },
   "lint-staged": {
     "*.{js,vue}": [
@@ -47,14 +47,15 @@
     "lint:css": "stylelint \"src/**/*.{vue,css,scss}\" --max-warnings=0",
     "lint:style": "stylelint \"src/**/*.{css,vue}\" --fix",
     "lint:fix": "pnpm lint:js:fix && pnpm lint:style",
+    "lint:sh": "shellcheck .github/scripts/*.sh",
     "lint:report": "eslint \"src/**/*.{ts,tsx,js,jsx}\" -f html -o eslint-report.html",
     "lint:report:json": "eslint \"src/**/*.{ts,tsx,js,jsx}\" -f json -o eslint-report.json",
     "docs:generate": "jsdoc -c jsdoc.json",
-    "test": "vitest",
+    "test": "rm -rf coverage && vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:watch": "vitest watch",
-    "test:coverage": "vitest run --coverage --passWithNoTests",
+    "test:coverage": "rm -rf coverage && vitest run --coverage --passWithNoTests",
     "test:unit": "vitest run",
     "test:related": "vitest related --run --passWithNoTests --no-coverage",
     "test:component": "vitest run -t \"component\"",
@@ -79,6 +80,7 @@
     "@semantic-release/github": "^12.0.6",
     "@semantic-release/npm": "^13.1.5",
     "@semantic-release/release-notes-generator": "^14.1.0",
+    "@testing-library/vue": "^8.1.0",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vitest/coverage-v8": "^4.1.2",
     "@vue/test-utils": "^2.4.6",

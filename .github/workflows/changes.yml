@@ -1,4 +1,60 @@
+# ==========================================================
+# WORKFLOW: CI Changes Detection
+# TOOL: GitHub Actions + dorny/paths-filter
+# DOCS:
+#   - https://docs.github.com/en/actions
+#   - https://github.com/dorny/paths-filter
+#
+# PURPOSE:
+#   Detect which parts of the repository changed and expose
+#   flags to conditionally trigger downstream jobs.
+#
+# EXECUTION:
+#   - Trigger:
+#       • workflow_call → used by main CI pipeline
+#   - MODE:
+#       • NON-BLOCKING → only computes outputs (no failure impact)
+#
+# OUTPUTS:
+#   - app  → true if application-related files changed
+#   - docs → true if documentation-related files changed
+#
+# DEPENDENCIES:
+#   - Git history (fetch-depth: 0) → required for diffing
+#   - dorny/paths-filter → file change detection
+#
+# USED BY:
+#   - ci.yml → conditionally runs validation / e2e
+#   - docs.yml → triggers documentation build
+#   - release.yml → ensures release only runs when app changes
+#
+# CHANGE STRATEGY:
+#   - app:
+#       • source code, config, dependencies, workflows
+#   - docs:
+#       • documentation + config impacting docs generation
+#
+# CONTEXT:
+#   - Stack: Vite + pnpm + Vue/React
+#   - Monorepo-friendly (can be extended with more scopes)
+#
+# PERFORMANCE:
+#   - Avoids unnecessary CI jobs (e.g. skip build if docs-only change)
+#
+# ACT COMPATIBILITY:
+#   - Fixes git remote URL for local runs (act)
+#
+# MAINTENANCE:
+#   - Update filters when adding new folders (e.g. /server, /packages)
+#   - Keep app/docs boundaries consistent
+#   - Owner: @gituser
+# ==========================================================
+
 name: CI, CHANGES
+
+permissions:
+  contents: read
+  security-events: write
 
 on:
   workflow_call:
@@ -18,15 +74,17 @@ jobs:
       docs: ${{ steps.filter.outputs.docs }}
 
     steps:
+      #Checkout full history
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
           persist-credentials: true
 
       - name: Fix git remote for act
         run: |
           git remote set-url origin https://github.com/${{ github.repository }}.git
 
+      # Detect changed paths using filters
       - uses: dorny/paths-filter@v3
         id: filter
         with:

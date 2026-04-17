@@ -1,4 +1,4 @@
 --pull=false
 --network host
 --env NODE_OPTIONS=--no-deprecation
---container-user 1000
+--use-gitignore

@@ -1,4 +1,57 @@
+# ==========================================================
+# WORKFLOW: CI - Lint & Test
+# TOOL: GitHub Actions
+# DOCS: https://docs.github.com/en/actions
+#
+# PURPOSE:
+#   Ensure code quality and correctness before release by running:
+#     1. Linting (CSS, JS/TS, formatting)
+#     2. Unit tests with coverage
+#
+# EXECUTION:
+#   - Trigger:
+#       • workflow_call → invoked by main CI pipeline
+#   - MODE:
+#       • BLOCKING → failures stop release pipeline
+#
+# OUTPUTS:
+#   - lint → lint job result (success / failure)
+#   - unit → unit test result (success / failure)
+#
+# DEPENDENCIES:
+#   - package.json scripts:
+#       • lint:css
+#       • lint:check
+#       • prettier
+#       • test:coverage
+#   - custom action: ./.github/actions/setup-pnpm
+#
+# USED BY:
+#   - release.yml → ensures only valid code is released
+#   - e2e.yml → runs after unit validation
+#
+# QUALITY STRATEGY:
+#   - Lint → style + static analysis
+#   - Unit → logic correctness + coverage
+#
+# CONTEXT:
+#   - Stack: Vite + pnpm + Vue/React
+#   - Husky disabled (CI environment)
+#
+# PERFORMANCE:
+#   - Parallel jobs (lint + unit)
+#
+# MAINTENANCE:
+#   - Keep lint rules aligned with project standards
+#   - Maintain test coverage thresholds
+#   - Owner: @gituser
+# ==========================================================
+
 name: CI, LINT AND TEST
+
+permissions:
+  contents: read
+  security-events: write
 
 on:
   workflow_call:
@@ -35,7 +88,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-
+      
       - uses: ./.github/actions/setup-pnpm
 
       - run: pnpm test:coverage

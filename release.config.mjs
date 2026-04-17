@@ -1,16 +1,53 @@
-//release.config.mjs
+// ==========================================================
+// CONFIG: Automated Release Pipeline
+// TOOL: semantic-release
+// VERSION: v21.x (plugin-based)
+//
+// DOCS: https://semantic-release.gitbook.io/
+//
+// PURPOSE:
+//   Fully automate versioning, changelog generation, and GitHub releases
+//   based on commit messages (Conventional Commits).
+//
+// EXECUTION:
+//   - Trigger: CI (usually on push to main/develop)
+//   - MODE: NON-INTERACTIVE (fully automated)
+//
+// DEPENDENCIES:
+//   - commitlint.config.cjs → enforces commit format
+//   - Conventional Commits → drives versioning logic
+//   - CI workflow (release.yml) → executes semantic-release
+//
+// USED BY:
+//   - GitHub Releases → publishes release notes + assets
+//   - CHANGELOG.md → auto-generated history
+//   - npm (optional) → package publishing (disabled here)
+//
+// VERSIONING STRATEGY:
+//   - feat → minor
+//   - fix → patch
+//   - perf → minor
+//   - others → patch or ignored
+//
+// BRANCH STRATEGY:
+//   - main → stable releases
+//   - develop → prereleases (beta)
+//
+// MAINTENANCE:
+//   - Keep plugins updated
+//   - Align rules with commitlint config
+//   - Owner: @gituser
+// ==========================================================
+
 export default {
-  branches: [
-    'main',
-    { name: 'develop', prerelease: 'beta' },
-    { name: 'staging', prerelease: 'rc' },
-  ],
+  branches: ['main', { name: 'develop', prerelease: 'beta' }],
   plugins: [
-    // 1. Analyze commits
+    // Analyze commits
     [
       '@semantic-release/commit-analyzer',
       {
         preset: 'conventionalcommits',
+        // Release rules
         releaseRules: [
           { type: 'docs', scope: 'README', release: 'patch' },
           { type: 'feat', release: 'minor' },
@@ -21,11 +58,12 @@ export default {
         ],
       },
     ],
-    // 2. Generate release notes with your custom sections
+    // Generate release notes with your custom sections
     [
       '@semantic-release/release-notes-generator',
       {
         preset: 'conventionalcommits',
+        // Custom sections for changelog
         presetConfig: {
           types: [
             { type: 'feat', section: 'Features' },
@@ -33,6 +71,7 @@ export default {
             { type: 'perf', section: 'Performance' },
             { type: 'refactor', section: 'Refactoring' },
             { type: 'docs', section: 'Documentation' },
+            // Hidden types
             { type: 'chore', hidden: true },
             { type: 'style', hidden: true },
             { type: 'build', hidden: true },
@@ -46,11 +85,11 @@ export default {
     [
       '@semantic-release/npm',
       {
-        npmPublish: false,
+        npmPublish: false, // prevents publishing to npm registry
       },
     ],
 
-    // 3. Update CHANGELOG.md
+    // Update CHANGELOG.md
     [
       '@semantic-release/changelog',
       {
@@ -58,11 +97,19 @@ export default {
       },
     ],
 
-    // 5. Create GitHub Release
+    // Create GitHub Release
     [
       '@semantic-release/github',
       {
         assets: [{ path: 'build-v*.zip', label: 'Build' }],
+      },
+    ],
+
+    [
+      '@semantic-release/git',
+      {
+        assets: ['package.json', 'CHANGELOG.md'],
+        message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
       },
     ],
   ],

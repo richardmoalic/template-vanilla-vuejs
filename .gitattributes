@@ -133,3 +133,8 @@ yarn.lock merge=union
 
 # Husky
 .husky/* text eol=lf
+
+playwright-report/** linguist-generated
+test-results/** linguist-generated
+cache/** linguist-generated
+*.html linguist-detectable=false

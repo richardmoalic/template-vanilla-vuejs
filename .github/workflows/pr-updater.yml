@@ -1,4 +1,64 @@
-name: '✨ Auto-Update PR Description & CHANGELOG'
+# ==========================================================
+# WORKFLOW: PR Automation (Description + Changelog + Labels)
+# TOOL: GitHub Actions + github-script
+# DOCS:
+#   - https://docs.github.com/en/actions
+#   - https://github.com/actions/github-script
+#
+# PURPOSE:
+#   Enhance developer experience by automatically:
+#     1. Generating structured PR descriptions
+#     2. Updating CHANGELOG.md (unreleased section)
+#     3. Applying semantic labels to PRs
+#
+# EXECUTION:
+#   - Trigger:
+#       • pull_request (opened, synchronize)
+#       • workflow_call → invoked by CI pipeline
+#   - MODE:
+#       • NON-BLOCKING (DX enhancement only)
+#
+# DEPENDENCIES:
+#   - Conventional Commits (commitlint)
+#   - git history (full fetch)
+#
+# USED BY:
+#   - main.yml → after deploy/docs
+#
+# AUTOMATION FEATURES:
+#   1. PR Description:
+#       - Groups commits by type (feat, fix, etc.)
+#       - Generates readable sections
+#
+#   2. CHANGELOG:
+#       - Updates "Unreleased" section
+#       - Prepends new entries
+#
+#   3. Labels:
+#       - Maps commit types → PR labels
+#
+# FALLBACK (LOCAL / ACT):
+#   - Uses last commits if PR context unavailable
+#
+# CONTEXT:
+#   - Stack: Vite + pnpm + Vue/React
+#   - Commit convention: Conventional Commits
+#
+# RISKS:
+#   - Force-push may rewrite changelog history
+#   - Requires clean commit messages
+#
+# MAINTENANCE:
+#   - Keep type mappings aligned with commitlint
+#   - Monitor changelog growth
+#   - Owner: @gituser
+# ==========================================================
+
+name: 'Auto-Update PR Description & CHANGELOG'
+
+permissions:
+  contents: read
+  security-events: write
 
 on:
   pull_request:
@@ -21,7 +81,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
       # -------------------------
       # Extract commits for PR
@@ -138,7 +198,7 @@ jobs:
           git push origin HEAD:${{ github.head_ref }}
 
       # -------------------------
-      # 5️⃣ Auto-label PR
+      # Auto-label PR
       # -------------------------
       - name: Auto-label PR
         uses: actions/github-script@v8

@@ -1,0 +1,65 @@
+# ==========================================================
+# CONFIG: secret scanning
+# TOOL: TruffleHog
+# VERSION: v3.94.2 (Stable)
+# DOCUMENTATION: https://github.com/trufflesecurity/trufflehog
+# PURPOSE: Deep history scanning and active API verification
+# USE CASES:
+#   1. CI/CD: Nightly deep-scans of full repository history.
+#   2. Verification: Pings providers (AWS, GitHub) to see if keys are LIVE
+# EXECUTION:
+#   - CI: security.yml (scheduled + PR + push)
+#   - MODE: blocking (fails pipeline on verified leaks)
+# SCOPE:
+#   - Full git history
+#   - Filesystem scan
+# CONTEXT:
+#   - Stack: Vite + pnpm + Vue/React
+# USED BY:
+#   - security.yml → Security scan
+# SECURITY NOTES:
+#   - Only verified secrets are reported
+#   - Lower false positives than pattern-based tools
+# MAINTENANCE:
+#   - Update version quarterly
+#   - Review rules when adding new providers (AWS,etc.)
+#   - Owner: @gituser
+# ==========================================================
+
+# ---------------------------------------------------------
+# Detector Settings
+# ---------------------------------------------------------
+detectors:
+  only_verified: true
+
+  # Custom Detectors
+  #custom:
+  #- name: Internal-App-Key
+  #regex: ''
+  #keywords: [""]
+
+# ---------------------------------------------------------
+# Exclusions
+# ---------------------------------------------------------
+exclude:
+  # Paths to skip entirely
+  paths:
+    - '**/node_modules/**'
+    - '**/dist/**'
+    - '**/build/**'
+    - '**/vendor/**'
+    - 'pnpm-lock.yaml'
+    - 'composer.lock'
+    - '.pnpm-store/**'
+    - 'tests/_data/**'
+
+  # Ignore specific from the scan output
+  #fingerprints:
+  #- "exemple safe key" # A known safe public key
+
+# ---------------------------------------------------------
+# Reporting
+# ---------------------------------------------------------
+reporting:
+  format: sarif
+  path: trufflehog-results.sarif

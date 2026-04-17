@@ -1,3 +1,36 @@
+# ==========================================================
+# HOOK TYPE: PRE-PUSH (Remote Gatekeeper)
+# TOOL: Husky
+# VERSION: v9.1.7 (Stable)
+# PRE-PUSH CONFIGURATION
+# DOCUMENTATION: https://typicode.github.io/husky
+# PURPOSE: 
+#   Final local validation to ensure that pushed code won't break the CI/CD pipeline.
+# USE CASES:
+#   1. Validation: Run full build (vite build) to catch type errors.
+#   2. Compliance: Strict linting (max-warnings=0) to prevent "style-drift".
+#   3. Verification: Run related unit tests (vitest).
+# EXECUTION:
+#   - MODE: Blocking (Prevents 'git push' to remote)
+# SCOPE:
+#   - Current branch vs Remote Tracking branch.
+# CONTEXT: 
+#   - Stack: Vite + pnpm + Vue/React
+# SECURITY NOTES:
+#   - Last local check. Ensures no compliance code or broken builds reach 
+#     the shared repository.
+# DEPENDENCIES:
+#   - commitlint.config.mjs → Defines commit message rules
+#   - package.json#scripts.lint:css → Stylint
+#   - package.json#scripts.lint:check → Eslint
+#   - package.json#scripts.test:related → Vitest
+#   - package.json#scripts.build → Vite build
+# MAINTENANCE:
+#   - Update version quarterly
+#   - Review if update eslint/stylelint/prettier/vitest/vite
+#   - Owner: @gituser
+# ==========================================================
+
 #!/bin/sh
 echo "Running pre-push checks..."
 

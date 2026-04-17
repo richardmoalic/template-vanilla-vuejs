@@ -1,5 +1,78 @@
+# ==========================================================
+# WORKFLOW: CI - Main Branch Orchestrator
+# TOOL: GitHub Actions
+# DOCS: https://docs.github.com/en/actions
+#
+# PURPOSE:
+#   Orchestrates the full CI/CD pipeline for the main branch:
+#     1. Detect changes
+#     2. Validate (lint + unit)
+#     3. Run E2E tests
+#     4. Release (semantic versioning + build)
+#     5. Generate docs (optional)
+#     6. Deploy application
+#     7. Update PR metadata
+#
+# EXECUTION:
+#   - Trigger:
+#       • push → main branch
+#       • workflow_dispatch → manual run
+#   - MODE:
+#       • BLOCKING PIPELINE (release depends on all validations)
+#
+# CONCURRENCY:
+#   - Prevents overlapping releases on same branch
+#   - Cancels previous runs if new push occurs
+#
+# DEPENDENCIES:
+#   - changes.yml → change detection
+#   - ci.yml → lint + unit validation
+#   - e2e.yml → browser testing
+#   - release.yml → versioning + build
+#   - docs.yml → documentation generation
+#   - deploy.yml → production deployment
+#   - pr-updater.yml → PR automation
+#
+# PIPELINE FLOW:
+#   changes
+#      ↓
+#   validate (if app changes)
+#      ↓
+#   e2e
+#      ↓
+#   release (if validation success)
+#      ↓
+#   ├── docs (if docs changes)
+#   └── deploy
+#      ↓
+#   pr-update
+#
+# CONDITIONS:
+#   - Skip validation if no app changes
+#   - Skip docs if no docs changes
+#   - Release only if:
+#       • validation = success
+#       • e2e = success OR skipped
+#
+# CONTEXT:
+#   - Stack: Vite + pnpm + Vue/React
+#   - Husky disabled (CI environment)
+#
+# PERFORMANCE:
+#   - Conditional execution (avoids unnecessary jobs)
+#   - Parallelization where possible
+#
+# MAINTENANCE:
+#   - Keep workflow dependencies aligned
+#   - Ensure outputs between workflows remain stable
+#   - Owner: @gituser
+# ==========================================================
+
 name: 'CI MAIN BRANCH'
 
+permissions:
+  contents: read
+  security-events: write
 on:
   push:
     branches:

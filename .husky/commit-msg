@@ -1,3 +1,31 @@
+# ==========================================================
+# HOOK TYPE: COMMIT-MSG (History Integrity)
+# TOOL: Husky (v9.1.7) + Commitlint (4.3.1)
+# VERSION: v9.1.7 (Stable)
+# DOCUMENTATION: https://commitlint.js.org/
+# ----------------------------------------------------------
+# PURPOSE: 
+#   Enforces standardized commit messages (Conventional Commits)
+#   to ensure history is searchable and automatable.
+# USE CASES:
+#   1. Standardization: Ensures messages follow 'type(scope): subject'.
+#   2. Automation: Enables auto-generation of CHANGELOG.md.
+#   3. Clarity: Prevents vague messages like "fix" or "update".
+# EXECUTION:
+#   - MODE: BLOCKING (Aborts commit if message is invalid).
+# SCOPE: 
+#   - The commit message string ($1).
+# CONTEXT: 
+#   - Stack: Vite + pnpm + Vue/React
+#   - Pattern: Conventional Commits (feat, fix, docs, chore, etc.)
+# DEPENDENCIES:
+#   - commitlint.config.mjs → Defines commit message rules
+#   - package.json#scripts.cm:check → CLI entry point
+# MAINTENANCE:
+#   - Review rules when adding new commit types
+#   - Owner: @gituser
+# ==========================================================
+
 #!/bin/sh
 
 echo "COMMIT MSG HOOK RUNNING"

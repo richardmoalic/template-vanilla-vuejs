@@ -1,0 +1,125 @@
+# ==========================================================
+# CONFIG: secret scanning
+# TOOL: Gitleaks
+# VERSION: v8.30.1 (Stable)
+# DOCUMENTATION: https://github.com/gitleaks/gitleaks
+# PURPOSE: Pattern-based detection of potential secrets
+# USE CASES:
+#   1. Pre-commit (Husky): Blocks leaks BEFORE they enter git.
+#   2. CI/CD (Gitleaks Action): Secondary check for PRs.
+# EXECUTION:
+#   - HOOK: husky/pre-commit
+#   - CI: security.yml (scheduled + PR + push)
+#   - MODE: blocking (fails hook/pipeline on leaks)
+# SCOPE:
+#   - Staged files
+#   - Verbose output
+# CONTEXT:
+#   - Stack: Vite + pnpm + Vue/React
+# USED BY:
+#   - security.yml → Security scan
+# SECURITY NOTES:
+#   - Pattern-based
+#   - Fast check
+#   - More false positives than API verification tools
+# MAINTENANCE:
+#   - Update version quarterly
+#   - Review rules when adding new providers (AWS,etc.)
+#   - Owner: @gituser
+# ==========================================================
+
+title = "Gitleaks config for Vite + pnpm"
+
+# Use default rules from Gitleaks
+[extend]
+useDefault = true
+
+# ----------------------------------
+# Global allowlist (ignore noise)
+# ----------------------------------
+[[allowlists]]
+description = "Ignore pnpm, node_modules, build artifacts, and common noise"
+
+paths = [
+  '''node_modules''',
+  '''dist''',
+  '''build''',
+  '''coverage''',
+  '''playwright-report''',
+  '''.pnpm''',
+  '''.pnpm-store''',
+  '''pnpm-lock.yaml''',
+  '''package-lock.json''',
+  '''yarn.lock''',
+  '''.vite''',
+  '''.output''',
+  '''.nuxt''',
+]
+
+# Ignore common test/demo patterns
+regexes = [
+  '''(?i)test[_-]?key''',
+  '''(?i)example[_-]?token''',
+  '''(?i)dummy[_-]?secret''',
+  '''(?i)fake[_-]?api[_-]?key'''
+]
+
+# ----------------------------------
+# Allow specific files
+# ----------------------------------
+# Add files here ONLY if you're sure they are safe
+# Example:
+# files = ['''src/mocks/.*''']
+
+# ----------------------------------
+# Custom rules (important)
+# ----------------------------------
+
+[[rules]]
+id = "env-file-secrets"
+description = "Secrets inside .env or config files"
+regex = '''(?i)(api[_-]?key|secret|token|password)\s*=\s*['"]?[A-Za-z0-9_\-]{8,}['"]?'''
+tags = ["env", "config", "high-risk"]
+
+[[rules]]
+id = "jwt-token"
+description = "JWT token detected"
+regex = '''eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9._-]+\.[A-Za-z0-9._-]+'''
+tags = ["auth", "jwt", "high-risk"]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API key pattern"
+regex = '''(?i)(api[_-]?key|access[_-]?key|secret[_-]?key)[^a-zA-Z0-9]{0,5}[A-Za-z0-9_\-]{16,}'''
+tags = ["key", "generic"]
+
+[[rules]]
+id = "vite-env-leak"
+description = "Sensitive Vite env variables (should NOT be exposed)"
+regex = '''VITE_(SECRET|TOKEN|KEY|PASSWORD)\s*=\s*['"]?.+['"]?'''
+tags = ["vite", "misconfiguration", "high-risk"]
+
+# ----------------------------------
+# Ignore specific known safe cases
+# ----------------------------------
+
+[[allowlists]]
+description = "Ignore localhost URLs and dev configs"
+regexes = [
+  '''http://localhost''',
+  '''127\.0\.0\.1''',
+  '''example\.com'''
+]
+
+[[allowlists]]
+description = "Ignore UUIDs (common false positives)"
+regexes = [
+  '''[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'''
+]
+
+# ----------------------------------
+# Performance tuning
+# ----------------------------------
+[detect]
+# Reduce noise from large files
+max_target_megabytes = 5
