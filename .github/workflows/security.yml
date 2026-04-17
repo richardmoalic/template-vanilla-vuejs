@@ -79,7 +79,8 @@ jobs:
         # Only run this in the real GitHub Cloud (OIDC doesn't work in act)
         if: env.ACT != 'true'
         with:
-          machine-identity-id: ${{ vars.INFISICAL_MACHINE_ID }}
+          identity-id: ${{ vars.INFISICAL_MACHINE_ID }}
+          method: oidc
           project-slug: 'template-v-vuejs'
           env-slug: 'prod'
 
