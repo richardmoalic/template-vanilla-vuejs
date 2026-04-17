@@ -76,10 +76,10 @@ jobs:
 
       - name: Load secrets
         uses: infisical/secrets-action@v1.0.8
-        # Only run this in the real GitHub Cloud (OIDC doesn't work in act)
+
         if: env.ACT != 'true'
         with:
-          identity-id: ${{ vars.INFISICAL_MACHINE_ID }}
+          machine-identity-id: ${{ vars.INFISICAL_MACHINE_ID }}
           method: oidc
           project-slug: 'template-v-vuejs'
           env-slug: 'prod'
