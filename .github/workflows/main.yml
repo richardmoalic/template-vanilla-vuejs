@@ -128,9 +128,9 @@ jobs:
   release:
     needs: [validate, e2e]
     if: |
-      always() &&
-      (needs.validate.outputs.result == 'success') &&
-      (needs.e2e.outputs.result == 'success' || needs.e2e.outputs.result == 'skipped')
+      always() && 
+      !contains(needs.*.result, 'failure') && 
+      !contains(needs.*.result, 'cancelled')
     uses: './.github/workflows/release.yml'
 
   post-release-security:
