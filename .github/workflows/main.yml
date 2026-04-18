@@ -139,7 +139,9 @@ jobs:
 
   docs:
     needs: release
-    if: needs.changes.outputs.docs == 'true'
+    if: | 
+      always() &&
+      (needs.changes.outputs.docs == 'true' || needs.release.result == 'success')
     uses: './.github/workflows/docs.yml'
     with:
       version: ${{ needs.release.outputs.version }}

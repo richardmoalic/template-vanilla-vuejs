@@ -62,8 +62,8 @@
     "test:e2e": "playwright test --reporter=html || true",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "release": "semantic-release --dry-run",
-    "release:ci": "semantic-release"
+    "release:dry": "semantic-release --dry-run",
+    "release": "semantic-release"
   },
   "dependencies": {
     "vue": "^3.5.30"

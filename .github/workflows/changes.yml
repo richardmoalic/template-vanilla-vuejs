@@ -75,7 +75,7 @@ jobs:
 
     steps:
       #Checkout full history
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
           persist-credentials: true

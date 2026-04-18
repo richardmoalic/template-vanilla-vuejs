@@ -91,29 +91,47 @@ jobs:
       - uses: ./.github/actions/setup-pnpm
 
       # Semantic Release
-      - name: Semantic Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm release:ci
-
-      # Extract version AFTER release
-      - name: Get version
-        id: version
+      - name: Semantic Release (capture version)
+        id: semantic
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION=$(node <<'EOF'
+          const semanticRelease = require('semantic-release');
+
+          (async () => {
+          try {
+            const config = (await import('./release.config.mjs')).default;
+            const result = await semanticRelease(config);
+
+          if (result) {
+            console.log(result.nextRelease.version);
+          } else {
+              const currentVersion = JSON.parse(fs.readFileSync('./package.json', 'utf8')).version;
+              console.log(currentVersion);
+              }
+          } catch(err) {
+              process.stderr.write(err.message);
+              process.exit(1);
+            }
+          })();
+          EOF
+          )
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
 
       # Build application
       - name: Build
         run: |
-          export VITE_APP_VERSION=$(node -p "require('./package.json').version")
+          if [ "${{ github.ref_name }}" = "develop" ]; then
+            export VITE_BASE_PATH="/${{ github.event.repository.name }}/develop/"
+          else
+            export VITE_BASE_PATH="/${{ github.event.repository.name }}/"
+          fi
           pnpm build
 
       - name: Create zip
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          zip -r build-v$VERSION.zip dist/
+          zip -r build-v${{ steps.semantic.outputs.version }}.zip dist/
 
       # Upload artifact (for deploy job)
       - name: Upload build artifact
