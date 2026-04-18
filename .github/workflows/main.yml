@@ -91,6 +91,9 @@ env:
   HUSKY: 0
 
 jobs:
+  permissions:
+    run: bash'./.github/scripts/permissions.sh'
+    
   security:
     uses: './.github/workflows/security.yml'
 

@@ -46,7 +46,7 @@
 #   - Owner: @gituser
 # ==========================================================
 
-name: CI, DOCS
+name: 'CI, DOCS'
 
 permissions:
   contents: read

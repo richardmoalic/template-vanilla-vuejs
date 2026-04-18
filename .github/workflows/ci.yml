@@ -47,7 +47,7 @@
 #   - Owner: @gituser
 # ==========================================================
 
-name: CI, LINT AND TEST
+name: 'CI, LINT & TEST'
 
 permissions:
   contents: read

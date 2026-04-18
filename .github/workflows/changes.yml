@@ -50,7 +50,7 @@
 #   - Owner: @gituser
 # ==========================================================
 
-name: CI, CHANGES
+name: 'CI, CHANGES'
 
 permissions:
   contents: read

@@ -1,4 +1,4 @@
-name: Security Scan
+name: 'CI, SBOM GENERATOR'
 
 permissions:
   contents: read

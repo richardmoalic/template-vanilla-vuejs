@@ -52,7 +52,7 @@
 #   - Owner: @gituser
 # ==========================================================
 
-name: CI, E2E
+name: 'CI, E2E'
 
 permissions:
   contents: read

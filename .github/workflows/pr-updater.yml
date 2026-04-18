@@ -54,7 +54,7 @@
 #   - Owner: @gituser
 # ==========================================================
 
-name: 'Auto-Update PR Description & CHANGELOG'
+name: 'CI AUTO-UPPDATE PR DESCRIPTION & CHANGELOG'
 
 permissions:
   contents: read

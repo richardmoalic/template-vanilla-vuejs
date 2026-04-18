@@ -48,7 +48,7 @@
 #   - Owner: @gituser
 # ==========================================================
 
-name: Security Scan
+name: 'CI, SECURITY SCAN'
 
 permissions:
   id-token: write
