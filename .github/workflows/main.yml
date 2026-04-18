@@ -91,7 +91,6 @@ env:
   HUSKY: 0
 
 jobs:
-  
   security:
     uses: './.github/workflows/security.yml'
 

@@ -63,7 +63,7 @@ run_scan_trufflehog() {
   local json="trufflehog.json"
 
   run "[trufflehog]" \
-    "trufflehog git file://\"$PWD\" --only-verified --json > \"$json\""
+    "trufflehog git file://\"$PWD\" --only-verified --no-update --json > \"$json\""
 
     local status=$?
 

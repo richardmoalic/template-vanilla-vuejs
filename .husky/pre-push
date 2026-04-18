@@ -35,7 +35,7 @@
 
 echo "Running pre-push checks..."
 
-trufflehog git file://"$PWD" --since-commit HEAD~1 --only-verified --fail
+trufflehog git file://"$PWD" --since-commit HEAD~1 --only-verified --no-update --fail
 
 echo "--- Linting css ---"
 pnpm lint:css || exit 1
