@@ -91,10 +91,17 @@ env:
   HUSKY: 0
 
 jobs:
-  permissions:
-    run: bash'./.github/scripts/permissions.sh'
-    
+  fix-permissions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Normalize Permissions
+        run: bash ./.github/scripts/permissions-fix.sh
+
   security:
+    needs: fix-permissions
     uses: './.github/workflows/security.yml'
 
   changes:
@@ -128,18 +135,18 @@ jobs:
     uses: './.github/workflows/release.yml'
 
   post-release-security:
-    needs: [release]
+    needs: release
     uses: './.github/workflows/sbom.yml'
 
   docs:
-    needs: [release]
+    needs: release
     if: needs.changes.outputs.docs == 'true'
     uses: './.github/workflows/docs.yml'
     with:
       version: ${{ needs.release.outputs.version }}
 
   deploy:
-    needs: [release]
+    needs: release
     uses: './.github/workflows/deploy.yml'
 
   pr-update:
