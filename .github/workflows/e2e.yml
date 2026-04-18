@@ -96,7 +96,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup node & pnpm
-      - uses: ./.github/actions/setup-pnpm
+        uses: ./.github/actions/setup-pnpm/action.yml
 
         # Detect if E2E tests exist
       - name: Detect E2E tests
