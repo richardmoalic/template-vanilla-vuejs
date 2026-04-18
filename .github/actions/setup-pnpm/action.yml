@@ -85,7 +85,7 @@ runs:
 
     - name: Fix permissions
       shell: bash
-      run: bash ./.github/scripts/permissions.sh
+      run: bash ./.github/scripts/permissions-fix.sh
 
     - name: Set Cache Variables
       shell: bash
