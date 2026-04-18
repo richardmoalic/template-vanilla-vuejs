@@ -54,30 +54,32 @@ install_trufflehog() {
 run_scan_trufflehog() {
   log_info "[trufflehog] Starting scan..."
 
-  
-  local json="trufflehog.json"
-  local sarif="trufflehog.sarif"
 
   if [ "${DRY_RUN:-false}" = "true" ]; then
     log_debug "[dry-run] trufflehog scan"
-    ensure_file "$sarif" '{"version":"2.1.0","runs":[]}'
     return 0
   fi
 
-run "[trufflehog] scan" trufflehog git file://"$PWD" --only-verified --json > trufflehog.json
-
-  if [ ! -s "$json" ]; then
-    log_warn "[trufflehog] No output JSON generated"
-    ensure_file "$sarif" '{"version":"2.1.0","runs":[]}'
-    return 0
-  fi
+  local json="trufflehog.json"
 
   run "[trufflehog]" \
-    "jq -s '{version:\"2.1.0\",runs:[{tool:{driver:{name:\"TruffleHog\"}},results:map({ruleId:\"secret\",message:{text:\"secret\"},locations:[]})}]}' $json > $sarif"
+    "trufflehog git file://\"$PWD\" --only-verified --json > \"$json\""
 
-  ensure_file "$sarif" '{"version":"2.1.0","runs":[]}'
+    local status=$?
+
+    if [ $status -ne 0 ] && [ ! -s "$json" ]; then
+      log_error "[trufflehog] scan failed unexpectedly"
+    return $status
+  fi
+
+  # Non-empty JSON → fail CI
+  if [ -s "$json" ]; then
+    log_error "[trufflehog] verified secrets detected! See $json"
+    return 1
+  fi
 
   log_success "[trufflehog] scan completed"
+  return 0
 
 }
 

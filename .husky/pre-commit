@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # ==========================================================
 # HOOK TYPE: PRE-COMMIT (Client-Side Shield)
 # TOOL: Husky + lint-staged (v16.4.0)
@@ -13,7 +15,7 @@
 #   - PERFORMANCE: Uses lint-staged to only scan modified files
 # SCOPE:
 #   - Staged files
-# CONTEXT: 
+# CONTEXT:
 #   - Stack: Vite + pnpm + Vue/React
 # SECURITY NOTES:
 #   - Prevents secrets from entering local history
@@ -28,17 +30,14 @@
 #   - Owner: @gituser
 # ==========================================================
 
-
-#!/bin/sh
-
 echo "Running pre-commit checks..."
 
 echo "Checking secrets..."
 gitleaks protect --staged --verbose
 
 if [ $? -ne 0 ]; then
-  echo "❌ Secrets detected! Commit blocked."
-  exit 1
+echo "❌ Secrets detected! Commit blocked."
+exit 1
 fi
 
 echo "Running lint checks..."

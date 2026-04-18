@@ -1,10 +1,12 @@
+#!/bin/sh
+
 # ==========================================================
 # HOOK TYPE: PRE-PUSH (Remote Gatekeeper)
 # TOOL: Husky
 # VERSION: v9.1.7 (Stable)
 # PRE-PUSH CONFIGURATION
 # DOCUMENTATION: https://typicode.github.io/husky
-# PURPOSE: 
+# PURPOSE:
 #   Final local validation to ensure that pushed code won't break the CI/CD pipeline.
 # USE CASES:
 #   1. Validation: Run full build (vite build) to catch type errors.
@@ -14,10 +16,10 @@
 #   - MODE: Blocking (Prevents 'git push' to remote)
 # SCOPE:
 #   - Current branch vs Remote Tracking branch.
-# CONTEXT: 
+# CONTEXT:
 #   - Stack: Vite + pnpm + Vue/React
 # SECURITY NOTES:
-#   - Last local check. Ensures no compliance code or broken builds reach 
+#   - Last local check. Ensures no compliance code or broken builds reach
 #     the shared repository.
 # DEPENDENCIES:
 #   - commitlint.config.mjs → Defines commit message rules
@@ -31,8 +33,9 @@
 #   - Owner: @gituser
 # ==========================================================
 
-#!/bin/sh
 echo "Running pre-push checks..."
+
+trufflehog git file://"$PWD" --since-commit HEAD~1 --only-verified --fail
 
 echo "--- Linting css ---"
 pnpm lint:css || exit 1
