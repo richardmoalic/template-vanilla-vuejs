@@ -77,7 +77,7 @@ jobs:
     # Playwright container
     container:
       image: mcr.microsoft.com/playwright:v1.58.2-jammy
-      options: --init --ipc=host --user 1000:1000
+      options: --init --ipc=host --user root
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/cache/playwright_cache
 
@@ -85,9 +85,17 @@ jobs:
       result: ${{ steps.set-result.outputs.result }}
 
     steps:
-      # Checkout repository
-      - uses: actions/checkout@v6
+      - name: Fix internal permissions
+        run: |
+          chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE
+          chmod -R 777 /__w/_temp
 
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup node & pnpm
       - uses: ./.github/actions/setup-pnpm
 
         # Detect if E2E tests exist
