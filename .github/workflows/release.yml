@@ -99,8 +99,7 @@ jobs:
         id: semantic
         run: |
           node <<'EOF' > output.txt
-          const semanticRelease = require('semantic-release');
-
+          const semanticRelease = (await import('semantic-release')).default;
           (async () => {
             const config = (await import('./release.config.mjs')).default;
             const result = await semanticRelease(config);
