@@ -69,7 +69,6 @@ on:
 env:
   HUSKY: 0
 
-
   # -----------------------------------
   # RELEASE + BUILD (SOURCE OF TRUTH)
   # -----------------------------------
@@ -118,6 +117,3 @@ jobs:
           EOF
 
           cat output.txt >> $GITHUB_OUTPUT
-      
-
-     

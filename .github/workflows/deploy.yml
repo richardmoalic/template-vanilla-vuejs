@@ -75,18 +75,16 @@ jobs:
       contents: write
 
     steps:
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
-      
-      - name : Build app + docs
-        uses: ./.github/actions/build-app
-        with: 
-          version: ${{ needs.release.outputs.version }}
-          base_path: "/${{ github.event.repository.name }}/"
-          generate_docs: 'true'
 
+      - name: Build app + docs
+        uses: ./.github/actions/build-app
+        with:
+          version: ${{ needs.release.outputs.version }}
+          base_path: '/${{ github.event.repository.name }}/'
+          generate_docs: 'true'
 
       - name: Prepare Pages
         run: |

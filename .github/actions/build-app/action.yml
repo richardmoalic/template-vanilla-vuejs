@@ -7,7 +7,6 @@ name: 'Build App'
 description: 'Installs deps, sets env, builds app, generates docs'
 
 inputs:
-
   version:
     description: 'App version (semantic-release or PR id)'
     required: true
@@ -23,7 +22,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-
     # -------------------------
     # Set pnpm
     # -------------------------
