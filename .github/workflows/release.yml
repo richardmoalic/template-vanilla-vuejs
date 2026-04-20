@@ -84,8 +84,9 @@ jobs:
       issues: write
 
     outputs:
-      version: ${{ steps.semantic.outputs.version }}
-      changelog: ${{ steps.semantic.outputs.changelog }}
+      version: ${{ steps.semantic.outputs.new_release_version }}
+      changelog: ${{ steps.semantic.outputs.new_release_notes }}
+      published: ${{ steps.semantic.outputs.new_release_published }}
 
     steps:
       # Checkout full history
