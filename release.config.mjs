@@ -90,10 +90,6 @@ export default {
     ],
 
     // Create GitHub Release
-    [
-      '@semantic-release/github',
-      {
-      },
-    ],
+    ['@semantic-release/github'],
   ],
 };

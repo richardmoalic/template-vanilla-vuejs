@@ -78,12 +78,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-pnpm
 
-      - run: |
-          if [ "${{ matrix.task }}" = "format" ]; then
-            pnpm prettier --check .
-          else
-            pnpm ${{ matrix.task }}
-          fi
+      - name: Lint CSS
+        run: pnpm lint:css
+
+      - name: Lint JS/TS
+        run: pnpm lint:check
+
+      - name: Check formatting
+        run: pnpm prettier --check .
 
   # -----------------------------------
   # UNIT TESTS
