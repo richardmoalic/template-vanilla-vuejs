@@ -1,0 +1,58 @@
+# ==========================================================
+# WORKFLOW: Pr preview
+# ==========================================================
+name: 'PR PREVIEW DEPLOY'
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build preview
+        if: github.event.action != 'closed'
+        uses: ./.github/actions/build-app
+        with:
+          version: "pr-${{ github.event.pull_request.number }}"
+          base_path: "/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/"
+          generate_docs: 'false'
+
+      # -------------------------
+      # Deploy PR preview
+      # -------------------------
+      - name: Deploy PR Preview
+        if: github.event.action != 'closed'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          destination_dir: pr-${{ github.event.pull_request.number }}
+          keep_files: true
+
+      # -------------------------
+      # Cleanup on PR close
+      # -------------------------
+      - name: Create empty dir for cleanup
+        if: github.event.action == 'closed'
+        run: mkdir empty
+
+      - name: Remove preview
+        if: github.event.action == 'closed'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./empty
+          publish_branch: gh-pages
+          destination_dir: pr-${{ github.event.pull_request.number }}
+          keep_files: false

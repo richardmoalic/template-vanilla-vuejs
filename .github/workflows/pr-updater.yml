@@ -54,7 +54,7 @@
 #   - Owner: @gituser
 # ==========================================================
 
-name: 'CI AUTO-UPPDATE PR DESCRIPTION & CHANGELOG'
+name: 'CI AUTO-UPPDATE PR DESCRIPTION'
 
 permissions:
   contents: read
@@ -65,6 +65,13 @@ on:
     types: [opened, synchronize]
 
   workflow_call:
+    inputs:
+      version:
+        type: string
+        required: false
+      notes:
+        type: string
+        required: false
 
 jobs:
   update-pr:
@@ -145,10 +152,12 @@ jobs:
               sections[title].push(`${subject} ${scope}`.trim());
             });
 
-            const body = Object.entries(sections)
+              const releaseNotes = `${{ inputs.notes || '' }}`;
+
+              const body = releaseNotes || Object.entries(sections)
               .map(([title, items]) => `## ${title}\n${items.map(i => `* ${i}`).join('\n')}`)
               .join('\n\n') || '_No conventional commits found._';
-
+              
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -156,46 +165,6 @@ jobs:
               body: body
             });
 
-      # -------------------------
-      # Update CHANGELOG.md
-      # -------------------------
-      - name: Update CHANGELOG.md
-        run: |
-          if [ -z "$COMMITS" ]; then
-            echo "No commits → skipping changelog"
-            exit 0
-          fi
-
-          CHANGELOG="CHANGELOG.md"
-          TEMP_FILE=$(mktemp)
-
-          echo "## [Unreleased] - $(date +%Y-%m-%d)" > "$TEMP_FILE"
-
-          echo "$COMMITS" | while read -r commit; do
-            HEADER=$(echo "$commit" | head -n1)
-            TYPE=$(echo "$HEADER" | grep -o '^[a-z]\+')
-            SUBJECT=$(echo "$HEADER" | sed -E 's/^[a-z]+(\(.+\))?: //')
-            case $TYPE in
-              feat) echo "- ✨ $SUBJECT" >> "$TEMP_FILE" ;;
-              fix) echo "- 🐛 $SUBJECT" >> "$TEMP_FILE" ;;
-              perf) echo "- ⚡ $SUBJECT" >> "$TEMP_FILE" ;;
-              refactor) echo "- ♻️ $SUBJECT" >> "$TEMP_FILE" ;;
-              docs) echo "- 📝 $SUBJECT" >> "$TEMP_FILE" ;;
-              chore) echo "- 🛠 $SUBJECT" >> "$TEMP_FILE" ;;
-              test) echo "- ✅ $SUBJECT" >> "$TEMP_FILE" ;;
-              ci) echo "- ⚙️ $SUBJECT" >> "$TEMP_FILE" ;;
-              build) echo "- 🏗 $SUBJECT" >> "$TEMP_FILE" ;;
-            esac
-          done
-
-          cat "$CHANGELOG" >> "$TEMP_FILE"
-          mv "$TEMP_FILE" "$CHANGELOG"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "$CHANGELOG"
-          git commit -m "chore: update CHANGELOG for PR #${{ github.event.pull_request.number }}" || echo "No changes to commit"
-          git push origin HEAD:${{ github.head_ref }}
 
       # -------------------------
       # Auto-label PR

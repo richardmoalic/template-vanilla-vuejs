@@ -54,6 +54,10 @@ permissions:
 
 on:
   workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
     outputs:
       result:
         value: ${{ jobs.deploy.result }}
@@ -71,25 +75,36 @@ jobs:
       contents: write
 
     steps:
-      # Download build from release job
-      - name: Download build
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-          if-no-files-found: error
 
-      - name: Debug files
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
+      
+      - name : Build app + docs
+        uses: ./.github/actions/build-app
+        with: 
+          version: ${{ needs.release.outputs.version }}
+          base_path: "/${{ github.event.repository.name }}/"
+          generate_docs: 'true'
+
+
+      - name: Prepare Pages
         run: |
-          ls -la
-          ls -la dist
+          mkdir -p public
+
+          # App
+          cp -r dist/* public/
+
+          # Docs
+          mkdir -p public/docs
+          cp -r docs/* public/docs/
 
       # Deploy
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./public
           publish_branch: gh-pages
           destination_dir: ${{ github.ref_name == 'develop' && 'develop' || '' }}
           keep_files: false

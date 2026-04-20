@@ -137,19 +137,17 @@ jobs:
     needs: release
     uses: './.github/workflows/sbom.yml'
 
-  docs:
+  deploy:
     needs: release
-    if: | 
-      always() &&
-      (needs.changes.outputs.docs == 'true' || needs.release.result == 'success')
-    uses: './.github/workflows/docs.yml'
+    if: needs.release.outputs.version != ''
+    uses: './.github/workflows/deploy.yml'
     with:
       version: ${{ needs.release.outputs.version }}
 
-  deploy:
-    needs: release
-    uses: './.github/workflows/deploy.yml'
-
   pr-update:
-    needs: [docs, deploy]
+    needs: [release, deploy]
+    if: always() && needs.release.outputs.version != ''
     uses: './.github/workflows/pr-updater.yml'
+    with:
+      version: ${{ needs.release.outputs.version }}
+      notes: ${{ needs.release.outputs.changelog }}

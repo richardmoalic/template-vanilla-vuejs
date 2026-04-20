@@ -1,0 +1,68 @@
+# ==========================================================
+# ACTION: Build-app
+# TYPE: Composite GitHub Action
+# ==========================================================
+name: 'Build App'
+
+description: 'Installs deps, sets env, builds app, generates docs'
+
+inputs:
+
+  version:
+    description: 'App version (semantic-release or PR id)'
+    required: true
+
+  base_path:
+    description: 'Base path for Vite'
+    required: true
+
+  generate_docs:
+    description: 'Whether to generate docs'
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+
+    # -------------------------
+    # Set pnpm
+    # -------------------------
+    - name: Setup Environment
+      uses: ./.github/actions/setup-pnpm
+      with:
+        install: 'true'
+
+    # -------------------------
+    # Set environment
+    # -------------------------
+    - name: Set build environment
+      shell: bash
+      run: |
+        echo "VITE_BASE_PATH=${{ inputs.base_path }}" >> $GITHUB_ENV
+        echo "VITE_APP_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+
+    # -------------------------
+    # Build app
+    # -------------------------
+    - name: Build application
+      shell: bash
+      run: pnpm build
+
+    # -------------------------
+    # Optional docs generation
+    # -------------------------
+    - name: Generate docs
+      if: ${{ inputs.generate_docs == 'true' }}
+      shell: bash
+      run: |
+        export DOC_VERSION="${{ inputs.version }}"
+        pnpm docs:generate
+
+    # -------------------------
+    # Debug output
+    # -------------------------
+    - name: Debug build info
+      shell: bash
+      run: |
+        echo "Version: ${{ inputs.version }}"
+        echo "Base path: ${{ inputs.base_path }}"

@@ -62,10 +62,13 @@ on:
     outputs:
       version:
         value: ${{ jobs.release.outputs.version }}
+      changelog:
+        value: ${{ jobs.release.outputs.changelog }}
       result:
         value: ${{ jobs.release.result }}
 env:
   HUSKY: 0
+
 
   # -----------------------------------
   # RELEASE + BUILD (SOURCE OF TRUTH)
@@ -80,7 +83,8 @@ jobs:
       issues: write
 
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.semantic.outputs.version }}
+      changelog: ${{ steps.semantic.outputs.changelog }}
 
     steps:
       # Checkout full history
@@ -91,59 +95,30 @@ jobs:
       - uses: ./.github/actions/setup-pnpm
 
       # Semantic Release
-      - name: Semantic Release (capture version)
+      - name: Semantic Release (capture outputs)
         id: semantic
         run: |
-          VERSION=$(node <<'EOF'
+          node <<'EOF' > output.txt
           const semanticRelease = require('semantic-release');
 
           (async () => {
-          try {
             const config = (await import('./release.config.mjs')).default;
             const result = await semanticRelease(config);
 
           if (result) {
-            console.log(result.nextRelease.version);
-          } else {
-              const currentVersion = JSON.parse(fs.readFileSync('./package.json', 'utf8')).version;
-              console.log(currentVersion);
-              }
-          } catch(err) {
-              process.stderr.write(err.message);
-              process.exit(1);
-            }
-          })();
+            const notes = result.nextRelease.notes;
+            console.log(`VERSION=${result.nextRelease.version}`);
+            console.log(`NOTES<<EOF`);
+            console.log(notes);
+            console.log(`EOF`);
+          }
+          })().catch(err => {
+            console.error(err);
+            process.exit(1);
+          });
           EOF
-          )
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          cat output.txt >> $GITHUB_OUTPUT
       
 
-      # Build application
-      - name: Build
-        run: |
-          if [ "${{ github.ref_name }}" = "develop" ]; then
-            export VITE_BASE_PATH="/${{ github.event.repository.name }}/develop/"
-          else
-            export VITE_BASE_PATH="/${{ github.event.repository.name }}/"
-          fi
-          pnpm build
-
-      - name: Create zip
-        run: |
-          VERSION=${{ steps.version.outputs.version }}
-          zip -r build-v${{ steps.semantic.outputs.version }}.zip dist/
-
-      # Upload artifact (for deploy job)
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist
-          if-no-files-found: error
-
-      # Upload versioned zip
-      - name: Upload zip artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-zip
-          path: build-v*.zip
+     
