@@ -70,15 +70,19 @@ jobs:
   # -----------------------------------
   lint:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        task: [lint:css, lint:check, format]
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: ./.github/actions/setup-pnpm
 
-      - run: pnpm lint:css
-      - run: pnpm lint:check
-      - run: pnpm prettier --check . --log-level warn
+      - run: |
+          if [ "${{ matrix.task }}" = "format" ]; then
+            pnpm prettier --check .
+          else
+            pnpm ${{ matrix.task }}
 
   # -----------------------------------
   # UNIT TESTS
