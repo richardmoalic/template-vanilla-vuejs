@@ -83,6 +83,7 @@ jobs:
             pnpm prettier --check .
           else
             pnpm ${{ matrix.task }}
+          fi
 
   # -----------------------------------
   # UNIT TESTS
