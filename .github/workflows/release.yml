@@ -54,7 +54,9 @@
 name: 'CI , RELEASE'
 
 permissions:
-  contents: read
+  contents: write
+  issues: write
+  pull-requests: write
   security-events: write
 
 on:
@@ -91,31 +93,20 @@ jobs:
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
-      - uses: ./.github/actions/setup-pnpm
-
-      # Semantic Release
-      - name: Semantic Release (capture outputs)
+      - name: Semantic Release
         id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          # This tells the action to use your existing config file
+          semantic_version: 24
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Feedback for your logs
+      - name: Build Info
+        if: steps.semantic.outputs.new_release_published == 'true'
         run: |
-          node <<'EOF' > output.txt
-          const semanticRelease = (await import('semantic-release')).default;
-          (async () => {
-            const config = (await import('./release.config.mjs')).default;
-            const result = await semanticRelease(config);
-
-          if (result) {
-            const notes = result.nextRelease.notes;
-            console.log(`VERSION=${result.nextRelease.version}`);
-            console.log(`NOTES<<EOF`);
-            console.log(notes);
-            console.log(`EOF`);
-          }
-          })().catch(err => {
-            console.error(err);
-            process.exit(1);
-          });
-          EOF
-
-          cat output.txt >> $GITHUB_OUTPUT
+          echo "Version created: ${{ steps.semantic.outputs.new_release_version }}"
