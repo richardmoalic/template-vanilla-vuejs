@@ -97,7 +97,9 @@ jobs:
         id: semantic
         uses: cycjimmy/semantic-release-action@v4
         with:
-          # This tells the action to use your existing config file
           semantic_version: 24
+          extra_plugins: |
+            conventional-changelog-conventionalcommits
+            @semantic-release/npm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
