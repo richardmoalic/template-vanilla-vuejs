@@ -19,7 +19,7 @@
     "*.{css,scss,vue}": [
       "stylelint --fix"
     ],
-    "*.{json,md}": [
+    "*.{json,md,yml}": [
       "prettier --write"
     ]
   },

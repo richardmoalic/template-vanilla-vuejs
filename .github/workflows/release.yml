@@ -96,6 +96,8 @@ jobs:
       # Semantic Release
       - name: Semantic Release (capture outputs)
         id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           node <<'EOF' > output.txt
           const semanticRelease = (await import('semantic-release')).default;
