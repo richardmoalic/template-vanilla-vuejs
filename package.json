@@ -12,7 +12,7 @@
     "pnpm": ">=10.0.0"
   },
   "lint-staged": {
-    "*.{js,vue}": [
+    "*.{js,vue,ts,cjs,mjs}": [
       "eslint --fix",
       "prettier --write"
     ],
