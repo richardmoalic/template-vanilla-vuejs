@@ -143,11 +143,3 @@ jobs:
     uses: './.github/workflows/deploy.yml'
     with:
       version: ${{ needs.release.outputs.version }}
-
-  pr-update:
-    needs: [release, deploy]
-    if: always() && needs.release.outputs.version != ''
-    uses: './.github/workflows/pr-updater.yml'
-    with:
-      version: ${{ needs.release.outputs.version }}
-      notes: ${{ needs.release.outputs.changelog }}

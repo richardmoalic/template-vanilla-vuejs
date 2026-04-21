@@ -54,7 +54,7 @@
 #   - Owner: @gituser
 # ==========================================================
 
-name: 'CI AUTO-UPPDATE PR DESCRIPTION'
+name: 'CI AUTO-UPDATE PR DESCRIPTION'
 
 permissions:
   contents: read
@@ -201,3 +201,49 @@ jobs:
                 labels: Array.from(labels)
               });
             }
+
+      - name: Add Preview URL to PR
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request.number;
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+
+            const previewUrl = `https://${owner}.github.io/${repo}/pr-${pr}/`;
+
+            const { data: current } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: pr
+            });
+
+            const body = `
+            **Preview available**
+
+            ${previewUrl}
+
+            -
+
+              current.body || ''}
+            `;
+
+            await github.rest.pulls.update({
+              owner,
+              repo,
+              pull_number: pr,
+              body
+            });
+
+      - name: Comment preview URL
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request.number;
+            const url = `https://${context.repo.owner}.github.io/${context.repo.repo}/pr-${pr}/`;
+
+            await github.rest.issues.createComment({
+            ...context.repo,
+            issue_number: pr,
+            body: `🚀 Preview: ${url}`
+            });
