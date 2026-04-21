@@ -25,7 +25,7 @@
 </script>
 
 <template>
-  <button data-testid="app-button" @click="handleClick">
+  <button class="btn" data-testid="app-button" @click="handleClick">
     {{ displayLabel }}
   </button>
 </template>
