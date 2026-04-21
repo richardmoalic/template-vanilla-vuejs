@@ -73,9 +73,11 @@ name: 'CI MAIN BRANCH'
 permissions:
   id-token: write
   contents: write
+  pages: write
   pull-requests: write
   issues: write
   security-events: write
+  deployments: write
 on:
   push:
     branches:
