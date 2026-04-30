@@ -85,7 +85,7 @@ run_scan_trufflehog() {
 
 main(){
   install_trufflehog
-  run_scan
+  run_scan_trufflehog
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

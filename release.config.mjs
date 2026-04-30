@@ -90,6 +90,11 @@ export default {
     ],
 
     // Create GitHub Release
-    ['@semantic-release/github'],
+    [
+      '@semantic-release/github',
+      {
+        assets: ['bom.json', 'gitleaks.sarif', 'trufflehog.json'],
+      },
+    ],
   ],
 };

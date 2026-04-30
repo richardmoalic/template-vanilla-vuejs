@@ -92,7 +92,7 @@ jobs:
           -- env
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
-          INFISICAL_PROJECT_ID: your-project-id
+          INFISICAL_PROJECT_ID: d36c1de8-80fa-475d-a1f8-c41288b11c91
           INFISICAL_ENV: prod
 
       - name: Run Scans
@@ -106,9 +106,11 @@ jobs:
           sarif_file: gitleaks.sarif
           category: gitleaks
 
-      - name: TruffleHog Debug Report
-        if: failure()
+      - name: Security Reports
+        if: always() && env.ACT != 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: trufflehog-leak-report
-          path: trufflehog.json
+          name: security-reports
+          path: |
+            gitleaks.sarif
+            trufflehog.json

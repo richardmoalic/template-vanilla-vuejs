@@ -54,7 +54,7 @@ source "$GITLEAKS_DIR/versions.env"
 
 : "${GITLEAKS_VERSION:?Missing versions.env}"
 : "${GITLEAKS_URL:?Missing versions.env}"
-: "${GITLEAKS_SHA:?Missing versions.env}"
+
 
 # -------------------------------
 # Install Gitleaks
@@ -67,7 +67,8 @@ install_tool \
   "$GITLEAKS_URL" \
   "$GITLEAKS_SHA" \
   "tar" \
-  "gitleaks"
+  "gitleaks" \
+
 }
 
 # -------------------------------
@@ -104,7 +105,7 @@ run_scan_gitleaks() {
 # -------------------------------
 main() {
   install_gitleaks
-  run_scan
+  run_scan_gitleaks
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
