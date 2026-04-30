@@ -29,7 +29,7 @@ jobs:
         run: bash .github/scripts/security.sh sbom
 
       - name: Upload SBOM Artifact
-        if: env.ACT != 'true'
+        if: always() && env.ACT != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: software-bill-of-materials
