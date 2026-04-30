@@ -78,7 +78,7 @@ run_scan_trufflehog() {
   fi
 
 # If secrets found → fail CI
-  if jq -e '. | length > 0' "$json" >/dev/null 2>&1; then
+  if jq -e '.results | length > 0' "$json" >/dev/null 2>&1; then
     log_error "[trufflehog] verified secrets detected! See $json"
     return 1
   fi
