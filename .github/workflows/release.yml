@@ -94,6 +94,12 @@ jobs:
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
+      - name: List Artifacts
+        run: |
+          gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Download Security Reports
         uses: actions/download-artifact@v4
         with:

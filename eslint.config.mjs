@@ -1,8 +1,8 @@
-import eslintConfigPkg from 'eslint/config';
-import vue from 'eslint-plugin-vue';
-import unicorn from 'eslint-plugin-unicorn';
 import js from '@eslint/js';
 import prettier from 'eslint-config-prettier/flat';
+import unicorn from 'eslint-plugin-unicorn';
+import vue from 'eslint-plugin-vue';
+import eslintConfigPkg from 'eslint/config';
 import globals from 'globals';
 
 const { globalIgnores } = eslintConfigPkg;
@@ -84,7 +84,15 @@ export default [
     },
   },
 
-  // 5. FOLDER SPECIFIC RULES
+  // 5. COMMONJS GLOBALS RULES
+  {
+    files: ['*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+    },
+  },
+
+  // 6. FOLDER SPECIFIC RULES
   {
     files: ['src/utils/**/*.js'],
     rules: {
@@ -98,6 +106,6 @@ export default [
     },
   },
 
-  // 6. PRETTIER
+  // 7. PRETTIER
   prettier,
 ];

@@ -47,6 +47,8 @@ const scopes = [
 
 module.exports = {
   extends: ['@commitlint/config-conventional'],
+  defaultIgnores: true,
+  ignores: [(message) => /^chore\(release\):/.test(message)],
   prompt: {
     useEmoji: false,
     skipQuestions: ['footerPrefix'],

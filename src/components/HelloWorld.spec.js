@@ -7,6 +7,10 @@ describe('HelloWorld.vue', () => {
     const wrapper = mount(HelloWorld);
     expect(wrapper.get('[data-test="message"]').text()).toBe('Hello Vue!');
   });
+  it('renders quote', () => {
+    const wrapper = mount(HelloWorld);
+    expect(wrapper.get('[data-test="quote"]').text()).toBe('Lorem ipsum');
+  });
 
   it('increments count when button is clicked', async () => {
     const wrapper = mount(HelloWorld);
