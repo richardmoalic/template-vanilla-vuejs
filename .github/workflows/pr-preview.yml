@@ -4,8 +4,14 @@
 name: 'PR PREVIEW DEPLOY'
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: false
+      notes:
+        type: string
+        required: false
 
 permissions:
   contents: write

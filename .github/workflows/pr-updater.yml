@@ -61,9 +61,6 @@ permissions:
   security-events: write
 
 on:
-  pull_request:
-    types: [opened, synchronize]
-
   workflow_call:
     inputs:
       version:
@@ -221,12 +218,9 @@ jobs:
             const body = `
             **Preview available**
 
-            ${previewUrl}
+            [View Preview](${previewUrl})
 
-            -
-
-              current.body || ''}
-            `;
+            ${current.body || ''}`;
 
             await github.rest.pulls.update({
               owner,
