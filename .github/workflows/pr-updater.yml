@@ -86,7 +86,7 @@ jobs:
       # Checkout full history
       # -------------------------
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 

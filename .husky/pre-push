@@ -23,13 +23,14 @@
 #     the shared repository.
 # DEPENDENCIES:
 #   - commitlint.config.mjs → Defines commit message rules
+#   - trufflehog.yml → secrets scanning configuration
 #   - package.json#scripts.lint:css → Stylint
 #   - package.json#scripts.lint:check → Eslint
 #   - package.json#scripts.test:related → Vitest
 #   - package.json#scripts.build → Vite build
 # MAINTENANCE:
 #   - Update version quarterly
-#   - Review if update eslint/stylelint/prettier/vitest/vite
+#   - Review update for: eslint/stylelint/prettier/vitest/vite/trufflehog
 #   - Owner: @gituser
 # ==========================================================
 
@@ -44,7 +45,20 @@ echo "--- Linting js ---"
 pnpm lint:check || exit 1
 
 echo "--- Running tests ---"
-pnpm test:related || exit 1
+if [ -z "$(git ls-files 'src/**/*.{test,spec}.{js,ts,vue}')" ]; then
+  echo "⚠️ No tests found in repo → skipping"
+else
+  pnpm test:related || pnpm test:run || exit 1
+  
+fi
+
+CHANGED_SRC=$(git diff --name-only HEAD~1 | grep '^src/' || true)
+CHANGED_TESTS=$(git diff --name-only HEAD~1 | grep -E '\.(test|spec)\.' || true)
+
+if [ -n "$CHANGED_SRC" ] && [ -z "$CHANGED_TESTS" ]; then
+  echo "❌ You changed source files but no tests were updated/added"
+  exit 1
+fi
 
 echo "--- Validating Build Consistency ---"
 pnpm build || exit 1

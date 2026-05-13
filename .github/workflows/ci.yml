@@ -75,7 +75,7 @@ jobs:
         task: [lint:css, lint:check, format]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
       - uses: ./.github/actions/setup-pnpm
 
       - name: Lint CSS
@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
 
       - uses: ./.github/actions/setup-pnpm
 

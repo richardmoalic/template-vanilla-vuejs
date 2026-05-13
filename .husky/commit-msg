@@ -11,8 +11,7 @@
 #   to ensure history is searchable and automatable.
 # USE CASES:
 #   1. Standardization: Ensures messages follow 'type(scope): subject'.
-#   2. Automation: Enables auto-generation of CHANGELOG.md.
-#   3. Clarity: Prevents vague messages like "fix" or "update".
+#   2. Clarity: Prevents vague messages like "fix" or "update".
 # EXECUTION:
 #   - MODE: BLOCKING (Aborts commit if message is invalid).
 # SCOPE: 
