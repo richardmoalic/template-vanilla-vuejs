@@ -12,7 +12,7 @@ on:
 
 jobs:
   pr-meta:
-    uses: ./.github/workflows/pr-updater.yml
+    uses: './.github/workflows/pr-updater.yml'
 
   preview:
-    uses: ./.github/workflows/pr-preview.yml
+    uses: './.github/workflows/pr-preview.yml'
