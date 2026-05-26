@@ -49,10 +49,6 @@
 
 name: 'CI, LINT & TEST'
 
-permissions:
-  contents: read
-  security-events: write
-
 on:
   workflow_call:
     outputs:
@@ -73,6 +69,8 @@ jobs:
     strategy:
       matrix:
         task: [lint:css, lint:check, format]
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
@@ -92,6 +90,8 @@ jobs:
   # -----------------------------------
   unit:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6

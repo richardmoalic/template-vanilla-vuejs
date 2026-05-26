@@ -50,10 +50,6 @@
 
 name: 'CI, SECURITY SCAN'
 
-permissions:
-  id-token: write
-  contents: read
-  security-events: write
 on:
   workflow_call:
 
@@ -61,6 +57,10 @@ jobs:
   vulnerability-scan:
     name: Secret & Supply Chain Scan
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      security-events: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
