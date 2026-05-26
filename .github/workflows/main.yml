@@ -100,6 +100,7 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      id-token: write
     uses: './.github/workflows/security.yml'
 
   changes:
