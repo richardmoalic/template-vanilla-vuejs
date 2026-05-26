@@ -52,9 +52,7 @@
 
 name: 'CI, CHANGES'
 
-permissions:
-  contents: read
-  security-events: write
+permissions: {}
 
 on:
   workflow_call:

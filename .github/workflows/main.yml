@@ -105,6 +105,9 @@ jobs:
 
   changes:
     needs: security
+    permissions:
+      contents: read
+      security-events: write
     uses: './.github/workflows/changes.yml'
 
   debug-changes:
