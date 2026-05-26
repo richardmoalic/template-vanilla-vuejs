@@ -31,11 +31,29 @@ DEFAULT_PNPM_CACHE="${DEFAULT_CACHE_ROOT}/pnpm_store"
 
 echo "[cache-vars] Setting environment variables..."
 
-# Prefix: differentiate act vs CI
-PREFIX=$([ "${ACT:-}" = "true" ] && echo "act" || echo "ci")
+# ------------------------------------------------
+# Cache namespace isolation
+# Prefix: differentiate act/CI/PR/main
+# ------------------------------------------------
+
+if [[ "${ACT:-}" == "true" ]]; then
+  CACHE_SCOPE="act"
+
+elif [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" ]]; then
+  CACHE_SCOPE="pr-${GITHUB_EVENT_NUMBER}"
+
+elif [[ "${GITHUB_REF_NAME:-}" == "main" ]]; then
+  CACHE_SCOPE="prod-main"
+
+else
+  SAFE_REF=$(echo "${GITHUB_REF_NAME:-default}" | tr '/:@' '-')
+  CACHE_SCOPE="ci-${SAFE_REF}"
+fi
+
+CACHE_PREFIX="${CACHE_SCOPE}-v1"
 
 # Export environment variables
-export CACHE_PREFIX="${PREFIX}-v1"
+export CACHE_PREFIX
 export VITE_CACHE_DIR="${VITE_CACHE_DIR:-$DEFAULT_VITE_CACHE}"
 export VITEST_CACHE_DIR="${VITEST_CACHE_DIR:-$DEFAULT_VITEST_CACHE}"
 export PLAYWRIGHT_CACHE_DIR="${PLAYWRIGHT_CACHE_DIR:-$DEFAULT_PLAYWRIGHT_CACHE}"
@@ -55,8 +73,5 @@ fi
 # Ensure directories exist
 mkdir -p "$VITE_CACHE_DIR" "$VITEST_CACHE_DIR" "$PLAYWRIGHT_CACHE_DIR" "$PNPM_CACHE_DIR"
 
-echo "[cache-vars] Mode: $PREFIX"
-echo "[cache-vars] Vite: $VITE_CACHE_DIR"
-echo "[cache-vars] Vitest: $VITEST_CACHE_DIR"
-echo "[cache-vars] Playwright: $PLAYWRIGHT_CACHE_DIR"
-echo "[cache-vars] pnpm: $PNPM_CACHE_DIR"
+echo "[cache-vars] Scope: $CACHE_SCOPE"
+echo "[cache-vars] Prefix: $CACHE_PREFIX"

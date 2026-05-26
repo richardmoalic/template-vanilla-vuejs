@@ -44,7 +44,9 @@ runs:
     # -------------------------
     - name: Build application
       shell: bash
-      run: pnpm build
+      run: |
+        pnpm build 
+        zip -r "build-v${{ inputs.version }}.zip" dist/
 
     # -------------------------
     # Optional docs generation

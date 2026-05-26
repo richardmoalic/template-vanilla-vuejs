@@ -7,24 +7,28 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+SECURITY_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 # 1. Global Initialization (Load libs once)
-source "$SCRIPT_DIR/lib/core.sh"
-source "$SCRIPT_DIR/lib/install.sh"
-source "$SCRIPT_DIR/versions.env"
+source "$SECURITY_DIR/lib/core.sh"
+source "$SECURITY_DIR/lib/install.sh"
+source "$SECURITY_DIR/versions.env"
+source "$SECURITY_DIR/lib/logger.sh"
 
 # 2. Source Tool Logics (without auto-executing main)
-source "$SCRIPT_DIR/install-infisical.sh"
-source "$SCRIPT_DIR/install-syft.sh"
-source "$SCRIPT_DIR/gitleaks.sh"
-source "$SCRIPT_DIR/trufflehog.sh"
+source "$SECURITY_DIR/install-infisical.sh"
+source "$SECURITY_DIR/install-cosign.sh"
+source "$SECURITY_DIR/install-syft.sh"
+source "$SECURITY_DIR/gitleaks.sh"
+source "$SECURITY_DIR/trufflehog.sh"
+source "$SECURITY_DIR/sign-artifacts.sh"
 
 core_init
 
 case "${1:-}" in
   install)
     log_info "action" "Installing all security tools..."
+    install_cosign
     install_infisical
     install_syft
     install_gitleaks
@@ -46,6 +50,23 @@ case "${1:-}" in
     export OVERRIDE_VERSION="${2:-}"
     generate_SBOM
     ;;
+
+  verify)
+    log_info "action" "Verifying artifact signature..."
+    install_cosign
+    # Usage: ./security.sh verify [file] [cert] [sig]
+    cosign verify-blob "${2}" \
+      --certificate "${3}" \
+      --signature "${4}" \
+      --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/heads/main" \
+      --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+    ;;
+
+  sign)
+    log_info "action" "Signing artifact..."
+    install_cosign
+    sign_artifact "${2}"
+  ;;
 
   *)
     echo "Usage: $0 {install|scan|sbom|verify}"

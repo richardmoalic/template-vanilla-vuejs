@@ -74,7 +74,7 @@ jobs:
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Load secrets
-        uses: infisical/secrets-action@v1.0.8
+        uses: infisical/secrets-action@77ab1f4ccd183a543cb5b42435fbd181189f4995 #v1.0.16
 
         if: env.ACT != 'true'
         with:
@@ -86,14 +86,28 @@ jobs:
       - name: Load secrets (Local Act only)
         if: env.ACT == 'true'
         run: |
+          export INFISICAL_TOKEN=$(curl -s "$INFISICAL_API_URL/api/v1/auth/universal-auth/login" \
+            -H "Content-Type: application/json" \
+            -d "{
+            \"clientId\":\"$INFISICAL_CLIENT_ID\",
+            \"clientSecret\":\"$INFISICAL_CLIENT_SECRET\"
+          }" | jq -r '.accessToken')
+
+          if [ -z "$INFISICAL_TOKEN" ] || [ "$INFISICAL_TOKEN" = "null" ]; then
+            echo "Failed to obtain Infisical token"
+            exit 1
+          fi
+
           infisical run \
-          --projectId "$INFISICAL_PROJECT_ID" \
-          --env "$INFISICAL_ENV" \
-          -- env
+            --projectId="$INFISICAL_PROJECT_ID" \
+            --env="$INFISICAL_ENV" \
+            -- env
         env:
-          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
-          INFISICAL_PROJECT_ID: d36c1de8-80fa-475d-a1f8-c41288b11c91
+          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
           INFISICAL_ENV: prod
+          INFISICAL_API_URL: 'https://app.infisical.com'
 
       - name: Run Scans
         run: bash .github/scripts/security.sh scan
@@ -101,16 +115,22 @@ jobs:
       - name: Upload Gitleaks Results
         if: always() && github.event_name != 'pull_request' && env.ACT != 'true' &&
           hashFiles('gitleaks.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@7211b7c8077ea37d8641b6271f6a365a22a5fbfa #v4.36.0
         with:
           sarif_file: gitleaks.sarif
           category: gitleaks
 
+      - name: Generate Report Checksums
+        if: always()
+        run: |
+          sha256sum gitleaks.sarif trufflehog.json > security-reports.sha256
+
       - name: Security Reports
         if: always() && env.ACT != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f #v7
         with:
           name: security-reports
           path: |
             gitleaks.sarif
             trufflehog.json
+            security-reports.sha256

@@ -1,14 +1,16 @@
 name: 'CI, SBOM GENERATOR'
 
 permissions:
-  contents: read
+  contents: write
+  id-token: write
+  attestations: write
   security-events: write
 
 on:
   workflow_call:
     outputs:
       generate-sbom:
-        value: ${{ jobs.unit.result }}
+        value: ${{ jobs.generate-sbom.result }}
 
 env:
   HUSKY: 0
@@ -28,9 +30,16 @@ jobs:
       - name: Generate Accurate SBOM
         run: bash .github/scripts/security.sh sbom
 
+      - name: Attest SBOM
+        if: env.ACT != 'true'
+        uses: actions/attest-sbom@v2
+        with:
+          sbom-path: 'bom.json'
+          subject-path: 'build-v${{ steps.semantic.outputs.new_release_version }}.zip'
+
       - name: Upload SBOM Artifact
         if: always() && env.ACT != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f #v7
         with:
           name: software-bill-of-materials
           path: bom.json

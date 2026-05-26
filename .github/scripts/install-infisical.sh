@@ -6,6 +6,10 @@ source "$INFISICAL_SCRIPT_DIR/lib/core.sh"
 source "$INFISICAL_SCRIPT_DIR/lib/install.sh"
 source "$INFISICAL_SCRIPT_DIR/versions.env"
 
+: "${INFISICAL_VERSION:?Missing versions.env}"
+: "${INFISICAL_URL:?Missing versions.env}"
+: "${INFISICAL_SHA:?Missing versions.env}"
+
 install_infisical() {
   install_tool \
     "infisical" \

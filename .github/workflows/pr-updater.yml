@@ -1,5 +1,5 @@
 # ==========================================================
-# WORKFLOW: PR Automation (Description + Changelog + Labels)
+# WORKFLOW: PR Automation (Description + Labels)
 # TOOL: GitHub Actions + github-script
 # DOCS:
 #   - https://docs.github.com/en/actions
@@ -13,7 +13,6 @@
 #
 # EXECUTION:
 #   - Trigger:
-#       • pull_request (opened, synchronize)
 #       • workflow_call → invoked by CI pipeline
 #   - MODE:
 #       • NON-BLOCKING (DX enhancement only)
@@ -22,19 +21,12 @@
 #   - Conventional Commits (commitlint)
 #   - git history (full fetch)
 #
-# USED BY:
-#   - main.yml → after deploy/docs
-#
 # AUTOMATION FEATURES:
 #   1. PR Description:
 #       - Groups commits by type (feat, fix, etc.)
 #       - Generates readable sections
 #
-#   2. CHANGELOG:
-#       - Updates "Unreleased" section
-#       - Prepends new entries
-#
-#   3. Labels:
+#   2. Labels:
 #       - Maps commit types → PR labels
 #
 # FALLBACK (LOCAL / ACT):
@@ -45,7 +37,6 @@
 #   - Commit convention: Conventional Commits
 #
 # RISKS:
-#   - Force-push may rewrite changelog history
 #   - Requires clean commit messages
 #
 # MAINTENANCE:
@@ -94,7 +85,7 @@ jobs:
         id: extract_commits
         run: |
           if [ -n "${{ github.event.pull_request.base.sha }}" ]; then
-            RANGE="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+            RANGE="origin/${{ github.event.pull_request.base.ref }}..HEAD"
           else
             echo "⚠️ No PR context (act), fallback to last commits"
             RANGE="HEAD~20..HEAD"
@@ -112,7 +103,7 @@ jobs:
       # Update PR Description
       # -------------------------
       - name: Update PR Body
-        uses: actions/github-script@v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9
         env:
           COMMITS: ${{ env.COMMITS }}
         with:
@@ -121,6 +112,8 @@ jobs:
               .split('__COMMIT__')
               .map(c => c.trim())
               .filter(Boolean);
+
+            console.log('Detected Commits:', commits);
 
             const typesMap = {
               feat: '✨ Features',
@@ -138,7 +131,8 @@ jobs:
             const sections = {};
 
             commits.forEach(commit => {
-              const headerMatch = commit.match(/^(\w+)(\(.+\))?:\s*(.+)$/);
+              const trimmedCommit = commit.trim(); // Clean up whitespace
+              const headerMatch = trimmedCommit.match(/^(\w+)(\(.+\))?:\s*(.+)$/);
               if (!headerMatch) return;
               const type = headerMatch[1];
               const scope = headerMatch[2] || '';
@@ -166,7 +160,7 @@ jobs:
       # Auto-label PR
       # -------------------------
       - name: Auto-label PR
-        uses: actions/github-script@v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9
         env:
           COMMITS: ${{ env.COMMITS }}
         with:
@@ -200,7 +194,7 @@ jobs:
             }
 
       - name: Add Preview URL to PR
-        uses: actions/github-script@v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9
         with:
           script: |
             const pr = context.payload.pull_request.number;
@@ -230,7 +224,7 @@ jobs:
             });
 
       - name: Comment preview URL
-        uses: actions/github-script@v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9
         with:
           script: |
             const pr = context.payload.pull_request.number;

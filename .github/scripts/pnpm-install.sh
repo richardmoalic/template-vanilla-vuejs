@@ -8,7 +8,10 @@
 #   - Local reproducible installs
 # CONTEXT:
 #   - Uses lockfile for strict reproducibility
-# VERSION: v1.1.0
+# Usage: ./pnpm-install.sh --secure
+# The --secure flag (used in Release) runs scripts but disables cache fallback
+# The default (used in PR) ignores scripts for speed/safety
+# VERSION: v2.0.0
 # ==========================================================
 
 
@@ -21,9 +24,24 @@ command -v pnpm >/dev/null || {
   exit 1
 }
 
-pnpm install \
-  --frozen-lockfile \
-  --prefer-offline \
-  --reporter=append-only
 
+is_secure=false
+
+if [[ "${1:-}" == "--secure" ]]; then
+  is_secure=true
+fi
+
+INSTALL_FLAGS=(
+  --frozen-lockfile
+  --prefer-offline
+  --reporter=append-only
+)
+
+if [[ "$is_secure" == "false" ]]; then
+  INSTALL_FLAGS+=(--ignore-scripts)
+fi
+
+pnpm install "${INSTALL_FLAGS[@]}"
+
+echo "[pnpm-install] Mode: $([[ "$is_secure" == "true" ]] && echo "trusted" || echo "untrusted")"
 echo "[pnpm-install] Done"

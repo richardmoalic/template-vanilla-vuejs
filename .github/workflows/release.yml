@@ -53,11 +53,7 @@
 
 name: 'CI , RELEASE'
 
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
-  security-events: write
+permissions: {}
 
 on:
   workflow_call:
@@ -80,8 +76,8 @@ jobs:
 
     permissions:
       contents: write
-      pull-requests: write
-      issues: write
+      id-token: write
+      attestations: write
 
     outputs:
       version: ${{ steps.semantic.outputs.new_release_version }}
@@ -94,6 +90,70 @@ jobs:
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
+      - name: Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 #v6
+        with:
+          semantic_version: 25
+          extra_plugins: |
+            conventional-changelog-conventionalcommits
+            @semantic-release/npm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build app + docs
+        uses: ./.github/actions/build-app
+        with:
+          version: ${{ steps.semantic.outputs.new_release_version }}
+          base_path: '/${{ github.event.repository.name }}/'
+          generate_docs: 'true'
+
+      - name: Generate SBOM
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          bash .github/scripts/security.sh install
+          bash .github/scripts/security.sh sbom "${{ steps.semantic.outputs.new_release_version }}"
+
+      - name: Generate SBOM Attestation
+        if: env.ACT != 'true' && steps.semantic.outputs.new_release_published == 'true'
+        uses: actions/attest-sbom@v2
+        with:
+          sbom-path: 'bom.json'
+          subject-path: 'build-v${{ steps.semantic.outputs.new_release_version }}.zip'
+
+      - name: Sign release artifact
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          bash .github/scripts/security.sh sign \
+          "build-v${{ steps.semantic.outputs.new_release_version }}.zip"
+
+      - name: Generate GitHub Attestation
+        if: env.ACT != 'true' && steps.semantic.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'build-v${{ steps.semantic.outputs.new_release_version }}.zip'
+          show-summary: true
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda #v3
+        with:
+          files: |
+            build-*.zip
+            build-*.sha256
+            build-*.sig
+            build-*.pem
+            bom.json
+
+      - name: Upload Secured Artifacts
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f #v7
+        with:
+          name: signed-build
+          path: |
+            build-*.zip
+            build-*.sha256
+            build-*.sig
+            build-*.pem
+
       - name: List Artifacts
         run: |
           gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts
@@ -101,25 +161,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Security Reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 #v8
         with:
           name: security-reports
           path: ./
-
-      # 2. Download SBOM
-      - name: Download SBOM
-        uses: actions/download-artifact@v4
-        with:
-          name: software-bill-of-materials
-          path: ./
-
-      - name: Semantic Release
-        id: semantic
-        uses: cycjimmy/semantic-release-action@v4
-        with:
-          semantic_version: 24
-          extra_plugins: |
-            conventional-changelog-conventionalcommits
-            @semantic-release/npm
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

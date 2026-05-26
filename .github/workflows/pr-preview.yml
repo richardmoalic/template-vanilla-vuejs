@@ -26,7 +26,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
+      - name: Checkout Code
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
+        with:
+          fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
       - name: Build preview
         if: github.event.action != 'closed'
@@ -41,7 +44,7 @@ jobs:
       # -------------------------
       - name: Deploy PR Preview
         if: github.event.action != 'closed'
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 #v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
@@ -58,7 +61,7 @@ jobs:
 
       - name: Remove preview
         if: github.event.action == 'closed'
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 #v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./empty

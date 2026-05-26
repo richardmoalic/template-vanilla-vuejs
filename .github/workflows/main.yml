@@ -70,14 +70,7 @@
 
 name: 'CI MAIN BRANCH'
 
-permissions:
-  id-token: write
-  contents: write
-  pages: write
-  pull-requests: write
-  issues: write
-  security-events: write
-  deployments: write
+permissions: {}
 on:
   push:
     branches:
@@ -104,6 +97,9 @@ jobs:
 
   security:
     needs: fix-permissions
+    permissions:
+      contents: read
+      security-events: write
     uses: './.github/workflows/security.yml'
 
   changes:
@@ -120,6 +116,8 @@ jobs:
 
   validate:
     needs: changes
+    permissions:
+      contents: read
     if: needs.changes.outputs.app == 'true'
     uses: './.github/workflows/ci.yml'
 
@@ -127,12 +125,8 @@ jobs:
     needs: [changes, validate]
     uses: './.github/workflows/e2e.yml'
 
-  sbom:
-    needs: [validate, e2e]
-    uses: './.github/workflows/sbom.yml'
-
   release:
-    needs: [validate, e2e, security, sbom]
+    needs: [validate, e2e, security]
     if: |
       always() && 
       !contains(needs.*.result, 'failure') && 

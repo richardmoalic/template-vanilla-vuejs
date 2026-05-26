@@ -50,7 +50,6 @@ name: 'CI, DEPLOY'
 
 permissions:
   contents: read
-  security-events: write
 
 on:
   workflow_call:
@@ -73,25 +72,38 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pages: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
-      - name: Build app + docs
-        uses: ./.github/actions/build-app
+      - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3#v8
         with:
-          version: ${{ needs.release.outputs.version }}
-          base_path: '/${{ github.event.repository.name }}/'
-          generate_docs: 'true'
+          name: signed-build
+
+      - name: Supply Chain Verification
+        run: |
+          bash .github/scripts/security.sh install
+          echo "ZIP_FILE=$(ls build-*.zip)" >> $GITHUB_ENV
+
+          # 1. Verify Cosign Signature (Identity)
+          bash .github/scripts/security.sh verify "$ZIP_FILE" "${ZIP_FILE}.pem" "${ZIP_FILE}.sig"
+
+          # 2. Verify Checksum (Integrity)
+          sha256sum -c "${ZIP_FILE}.sha256"
+
+          echo "🚀 Verification Passed. Proceeding to deploy."
 
       - name: Prepare Pages
         run: |
           mkdir -p public
 
           # App
-          cp -r dist/* public/
+          unzip "$ZIP_FILE" -d extracted
+          cp -r extracted/dist/* public/
 
           # Docs
           mkdir -p public/docs
@@ -99,7 +111,7 @@ jobs:
 
       # Deploy
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 #v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
