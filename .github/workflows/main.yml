@@ -127,10 +127,17 @@ jobs:
 
   e2e:
     needs: [changes, validate]
+    permissions:
+      contents: read
+      security-events: write
     uses: './.github/workflows/e2e.yml'
 
   release:
     needs: [validate, e2e, security]
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     if: |
       always() && 
       !contains(needs.*.result, 'failure') && 
@@ -139,6 +146,10 @@ jobs:
 
   deploy:
     needs: release
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
     if: needs.release.outputs.version != ''
     uses: './.github/workflows/deploy.yml'
     with:
