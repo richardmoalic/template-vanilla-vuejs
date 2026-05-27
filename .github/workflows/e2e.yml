@@ -54,10 +54,6 @@
 
 name: 'CI, E2E'
 
-permissions:
-  contents: read
-  security-events: write
-
 on:
   workflow_call:
     outputs:
@@ -74,6 +70,9 @@ env:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     # Playwright container
     container:
       image: mcr.microsoft.com/playwright:v1.58.2-jammy

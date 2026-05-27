@@ -48,8 +48,7 @@
 
 name: 'CI, DEPLOY'
 
-permissions:
-  contents: read
+permissions: {}
 
 on:
   workflow_call:

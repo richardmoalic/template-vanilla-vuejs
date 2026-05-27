@@ -1,11 +1,5 @@
 name: 'PR'
 
-permissions:
-  id-token: write
-  contents: write
-  pull-requests: write
-  issues: write
-  security-events: write
 on:
   pull_request:
     types: [opened, synchronize, reopened]

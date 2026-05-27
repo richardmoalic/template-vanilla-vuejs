@@ -47,10 +47,6 @@
 
 name: 'CI AUTO-UPDATE PR DESCRIPTION'
 
-permissions:
-  contents: read
-  security-events: write
-
 on:
   workflow_call:
     inputs:

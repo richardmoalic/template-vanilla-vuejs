@@ -13,10 +13,6 @@ on:
         type: string
         required: false
 
-permissions:
-  contents: write
-  pull-requests: write
-
 concurrency:
   group: pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -24,6 +20,9 @@ concurrency:
 jobs:
   preview:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout Code
