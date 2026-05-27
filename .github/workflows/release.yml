@@ -124,8 +124,7 @@ jobs:
       - name: Sign release artifact
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
-          bash .github/scripts/security.sh sign \
-          "build-v${{ steps.semantic.outputs.new_release_version }}.zip"
+          bash .github/scripts/security.sh sign "build-v${{ steps.semantic.outputs.new_release_version }}.zip"
 
       - name: Generate GitHub Attestation
         if: env.ACT != 'true' && steps.semantic.outputs.new_release_published == 'true'
