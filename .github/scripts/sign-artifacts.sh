@@ -17,7 +17,7 @@ filename=$(basename "$artifact_path")
 local checksum_file="${artifact_path}.sha256"
 
 log_info "sign" "Generating checksum for $filename"
-sha256sum "$artifact_path" | tee "${artifact_path}.sha256"
+sha256sum "$artifact_path" > "$checksum_file"
 
 # Ensure cosign is installed
 if ! command -v cosign >/dev/null; then
