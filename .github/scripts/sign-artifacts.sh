@@ -25,21 +25,23 @@ if ! command -v cosign >/dev/null; then
     exit 1
 fi
 
-# Keyless signing using OIDC identity
-# --yes: skips interactive confirmation
-for file in "$artifact_path" "${checksum_file}"; do
-    cosign sign-blob "$file" \
-    --output-signature "${file}.sig" \
-    --output-certificate "${file}.pem" \
+# Sign artifact
+  cosign sign-blob "$artifact_path" \
+    --bundle "${artifact_path}.bundle.json" \
     --yes
-done
+
+  # Sign checksum
+  cosign sign-blob "$checksum_file" \
+    --bundle "${checksum_file}.bundle.json" \
+    --yes
+
 
 log_success "sign" "Artifact signed successfully"
 
 }
 
 main() {
-sign_artifact
+sign_artifact "$@"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

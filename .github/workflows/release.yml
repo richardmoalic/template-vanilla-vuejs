@@ -139,8 +139,7 @@ jobs:
           files: |
             build-*.zip
             build-*.sha256
-            build-*.sig
-            build-*.pem
+            build-*.bundle.json
             bom.json
 
       - name: Upload Secured Artifacts
@@ -150,8 +149,7 @@ jobs:
           path: |
             build-*.zip
             build-*.sha256
-            build-*.sig
-            build-*.pem
+            build-*.bundle.json
 
       - name: List Artifacts
         run: |

@@ -54,12 +54,11 @@ case "${1:-}" in
   verify)
     log_info "action" "Verifying artifact signature..."
     install_cosign
-    # Usage: ./security.sh verify [file] [cert] [sig]
+
     cosign verify-blob "${2}" \
-      --certificate "${3}" \
-      --signature "${4}" \
-      --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/heads/main" \
-      --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+    --bundle "${3}" \
+    --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/heads/main" \
+    --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
     ;;
 
   sign)

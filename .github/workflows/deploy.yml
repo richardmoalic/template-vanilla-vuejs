@@ -86,12 +86,15 @@ jobs:
       - name: Supply Chain Verification
         run: |
           bash .github/scripts/security.sh install
-          echo "ZIP_FILE=$(ls build-*.zip)" >> $GITHUB_ENV
 
-          # 1. Verify Cosign Signature (Identity)
-          bash .github/scripts/security.sh verify "$ZIP_FILE" "${ZIP_FILE}.pem" "${ZIP_FILE}.sig"
+          ZIP_FILE=$(ls build-*.zip)
 
-          # 2. Verify Checksum (Integrity)
+          # Verify signature bundle
+          bash .github/scripts/security.sh verify \
+            "$ZIP_FILE" \
+            "${ZIP_FILE}.bundle.json"
+
+          # Verify checksum integrity
           sha256sum -c "${ZIP_FILE}.sha256"
 
           echo "🚀 Verification Passed. Proceeding to deploy."
