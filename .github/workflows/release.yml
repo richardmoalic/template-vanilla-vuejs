@@ -133,15 +133,6 @@ jobs:
           subject-path: 'build-v${{ steps.semantic.outputs.new_release_version }}.zip'
           show-summary: true
 
-      - name: Upload release assets
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda #v3
-        with:
-          files: |
-            build-*.zip
-            build-*.sha256
-            build-*.bundle.json
-            bom.json
-
       - name: Upload Secured Artifacts
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f #v7
         with:

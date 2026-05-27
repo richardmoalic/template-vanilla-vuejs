@@ -93,7 +93,14 @@ export default {
     [
       '@semantic-release/github',
       {
-        assets: ['bom.json', 'gitleaks.sarif', 'trufflehog.json'],
+        assets: [
+          'build-*.zip',
+          'build-*.sha256',
+          'build-*.bundle.json',
+          'bom.json',
+          'gitleaks.sarif',
+          'trufflehog.json',
+        ],
       },
     ],
   ],
