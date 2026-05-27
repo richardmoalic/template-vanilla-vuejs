@@ -88,6 +88,7 @@ jobs:
           bash .github/scripts/security.sh install
 
           ZIP_FILE=$(ls build-*.zip)
+          echo "ZIP_FILE=$ZIP_FILE" >> $GITHUB_ENV
 
           # Verify signature bundle
           bash .github/scripts/security.sh verify \
@@ -109,7 +110,10 @@ jobs:
 
           # Docs
           mkdir -p public/docs
-          cp -r docs/* public/docs/
+
+          if [ -d docs ]; then
+            cp -r docs/* public/docs/
+          fi
 
       # Deploy
       - name: Deploy to GitHub Pages
