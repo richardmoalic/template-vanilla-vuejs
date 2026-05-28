@@ -67,6 +67,10 @@ on:
 env:
   HUSKY: 0
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
   # -----------------------------------
   # RELEASE + BUILD (SOURCE OF TRUTH)
   # -----------------------------------
@@ -97,13 +101,8 @@ jobs:
 
       - name: Setup pnpm
         uses: ./.github/actions/setup-pnpm
-
-      - name: Install Dependencies
-        if: steps.semantic.outputs.new_release_published == 'true'
-        run: bash .github/scripts/pnpm-install.sh --secure
-
-      - name: Audit Dependency Signatures
-        run: bash .github/scripts/security.sh audit
+        with:
+          secure-mode: 'true'
 
       - name: Semantic Release
         id: semantic
@@ -119,13 +118,6 @@ jobs:
       - name: Install Security Tooling
         if: steps.semantic.outputs.new_release_published == 'true'
         run: bash .github/scripts/security.sh install
-
-      - name: Upload Audit Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-signature-audit
-          path: pnpm-audit-signatures.json
 
       - name: Build app + docs
         if: steps.semantic.outputs.new_release_published == 'true'
@@ -155,6 +147,7 @@ jobs:
             "gitleaks.sarif" \
             "trufflehog.json" \
             "pnpm-audit-signatures.json" \
+            "pnpm-audit-vulnerability.json" \
             "security-reports.sha256"
 
       - name: Generate SBOM Attestation
@@ -187,6 +180,8 @@ jobs:
             trufflehog.json.bundle.json \
             pnpm-audit-signatures.json \
             pnpm-audit-signatures.json.bundle.json \
+            pnpm-audit-vulnerability.json \
+            pnpm-audit-vulnerability.json.bundle.json \
             security-reports.sha256 \
             security-reports.sha256.bundle.json \
             --clobber
@@ -209,6 +204,8 @@ jobs:
             trufflehog.json.bundle.json
             pnpm-audit-signatures.json
             pnpm-audit-signatures.json.bundle.json
+            pnpm-audit-vulnerability.json \
+            pnpm-audit-vulnerability.json.bundle.json \
             security-reports.sha256
             security-reports.sha256.bundle.json
 

@@ -113,6 +113,26 @@ jobs:
           INFISICAL_ENV: prod
           INFISICAL_API_URL: 'https://app.infisical.com'
 
+      - name: Audit Dependency Signatures
+        run: bash .github/scripts/security.sh audit_node_signatures
+
+      - name: Upload Signatures Audit Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-signature-audit
+          path: pnpm-audit-signatures.json
+
+      - name: Audit Dependency Vulnerability
+        run: bash .github/scripts/security.sh audit_node_vulnerability
+
+      - name: Upload Vulnerability Audit Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-signature-audit
+          path: pnpm-audit-vulnerability.json
+
       - name: Run Scans
         run: bash .github/scripts/security.sh scan
 

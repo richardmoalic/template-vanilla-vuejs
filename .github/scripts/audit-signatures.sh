@@ -6,10 +6,10 @@
 
 set -euo pipefail
 
-AUDIT_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$AUDIT_SCRIPT_DIR/lib/logger.sh"
+AUDIT_SIGNATURES_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "$AUDIT_SIGNATURES_SCRIPT_DIR/lib/logger.sh"
 
-audit_node_modules(){
+audit_signatures(){
 log_info "audit" "Verifying dependency signatures via Sigstore..."
 local audit_file="pnpm-audit-signatures.json"
 
@@ -25,7 +25,7 @@ local audit_file="pnpm-audit-signatures.json"
 
   log_success "audit" "All dependencies have valid signatures."
 
-  log_info "audit" "Audit report saved to $audit_file"
+  log_info "audit" "Audit signatures report saved to $audit_file"
 
 }
 
@@ -35,7 +35,7 @@ if ! command -v pnpm >/dev/null; then
     exit 1
   fi
 
-audit_node_modules "$@"
+audit_signatures "$@"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
