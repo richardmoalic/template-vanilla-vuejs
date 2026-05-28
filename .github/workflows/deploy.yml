@@ -75,17 +75,27 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
+      - name: Harden Runner
+        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout Repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
-      - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 #v8
+      - name: Download Signed Artifacts
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 #v8
         with:
           name: signed-build
+          path: ./
+
+      - name: Install Security Tooling
+        run: bash .github/scripts/security.sh install
 
       - name: Supply Chain Verification
         run: |
-          bash .github/scripts/security.sh install
 
           ZIP_FILE=$(ls build-*.zip)
           echo "ZIP_FILE=$ZIP_FILE" >> $GITHUB_ENV
@@ -100,7 +110,7 @@ jobs:
 
           echo "🚀 Verification Passed. Proceeding to deploy."
 
-      - name: Prepare Pages
+      - name: Extract Build
         run: |
           mkdir -p public
 
@@ -109,10 +119,10 @@ jobs:
           cp -r extracted/dist/* public/
 
           # Docs
-          mkdir -p public/docs
 
-          if [ -d docs ]; then
-            cp -r docs/* public/docs/
+          if [ -d extracted/docs ]; then
+            mkdir -p public/docs
+            cp -r extracted/docs/* public/docs/
           fi
 
       # Deploy

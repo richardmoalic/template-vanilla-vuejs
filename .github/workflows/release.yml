@@ -85,8 +85,13 @@ jobs:
       published: ${{ steps.semantic.outputs.new_release_published }}
 
     steps:
-      # Checkout full history
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
+      - name: Harden Runner
+        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout Repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
@@ -101,18 +106,50 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install Security Tooling
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: bash .github/scripts/security.sh install
+
+      - name: Audit Dependency Signatures
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: bash .github/scripts/security.sh audit
+
+      - name: Upload Audit Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-signature-audit
+          path: pnpm-audit-signatures.json
+
       - name: Build app + docs
+        if: steps.semantic.outputs.new_release_published == 'true'
         uses: ./.github/actions/build-app
         with:
           version: ${{ steps.semantic.outputs.new_release_version }}
           base_path: '/${{ github.event.repository.name }}/'
           generate_docs: 'true'
 
+      - name: Download Security Reports
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 #v8
+        with:
+          name: security-reports
+          path: ./
+
       - name: Generate SBOM
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
-          bash .github/scripts/security.sh install
           bash .github/scripts/security.sh sbom "${{ steps.semantic.outputs.new_release_version }}"
+
+      - name: Sign Release Assets
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          bash .github/scripts/security.sh sign \
+            "build-v${{ steps.semantic.outputs.new_release_version }}.zip" \
+            "bom.json" \
+            "gitleaks.sarif" \
+            "trufflehog.json" \
+            "pnpm-audit-signatures.json" \
+            "security-reports.sha256"
 
       - name: Generate SBOM Attestation
         if: env.ACT != 'true' && steps.semantic.outputs.new_release_published == 'true'
@@ -124,7 +161,10 @@ jobs:
       - name: Sign release artifact
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
-          bash .github/scripts/security.sh sign "build-v${{ steps.semantic.outputs.new_release_version }}.zip"
+          bash .github/scripts/security.sh sign \
+          "build-v${{ steps.semantic.outputs.new_release_version }}.zip" \
+          "bom.json" \
+          "security-reports.sha256"
 
       - name: Generate GitHub Attestation
         if: env.ACT != 'true' && steps.semantic.outputs.new_release_published == 'true'
@@ -142,6 +182,15 @@ jobs:
             build-*.sha256 \
             build-*.bundle.json \
             bom.json \
+            bom.json.bundle.json \
+            gitleaks.sarif \
+            gitleaks.sarif.bundle.json \
+            trufflehog.json \
+            trufflehog.json.bundle.json \
+            pnpm-audit-signatures.json \
+            pnpm-audit-signatures.json.bundle.json \
+            security-reports.sha256 \
+            security-reports.sha256.bundle.json \
             --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -154,6 +203,16 @@ jobs:
             build-*.zip
             build-*.sha256
             build-*.bundle.json
+            bom.json
+            bom.json.bundle.json
+            gitleaks.sarif
+            gitleaks.sarif.bundle.json
+            trufflehog.json
+            trufflehog.json.bundle.json
+            pnpm-audit-signatures.json
+            pnpm-audit-signatures.json.bundle.json
+            security-reports.sha256
+            security-reports.sha256.bundle.json
 
       - name: List Artifacts
         run: |
@@ -161,8 +220,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download Security Reports
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 #v8
-        with:
-          name: security-reports
-          path: ./
+      - name: Generate Workflow Summary
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          {
+            echo "## 🚀 Release Summary"
+            echo ""
+            echo "### Version"
+            echo "v${{ steps.semantic.outputs.new_release_version }}"
+            echo ""
+            echo "### Security"
+            echo "- Dependency signatures verified"
+            echo "- Cosign artifact signing completed"
+            echo "- SBOM generated"
+            echo "- GitHub provenance generated"
+            echo ""
+            echo "### Artifacts"
+            ls -lh build-*.zip
+          } >> "$GITHUB_STEP_SUMMARY"

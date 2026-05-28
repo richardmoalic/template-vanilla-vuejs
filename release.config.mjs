@@ -1,7 +1,7 @@
 // ==========================================================
 // CONFIG: Automated Release Pipeline
 // TOOL: semantic-release
-// VERSION: v21.x (plugin-based)
+// VERSION: v25.x (plugin-based)
 //
 // DOCS: https://semantic-release.gitbook.io/
 //
@@ -90,6 +90,15 @@ export default {
     ],
 
     // Create GitHub Release
-    ['@semantic-release/github'],
+    [
+      '@semantic-release/github',
+      {
+        successComment: false,
+        failComment: false,
+        releasedLabels: ['released'],
+        addReleases: 'bottom',
+        // it allows to append custom notes later via 'gh release edit'
+      },
+    ],
   ],
 };

@@ -1,0 +1,24 @@
+# ==========================================================
+# CONFIG: Dependabot
+# DOCS: https://docs.github.com/fr/code-security/tutorials/secure-your-dependencies/dependabot-quickstart-guide
+#
+# PURPOSE:
+#
+# MAINTENANCE:
+#   - Owner: @gituser
+# ==========================================================
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    open-pull-requests-limit: 5
+    groups:
+      dependencies:
+        patterns:
+          - '*'
+    labels:
+      - 'dependencies'
+      - 'security'

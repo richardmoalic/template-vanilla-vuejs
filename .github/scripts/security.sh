@@ -22,6 +22,7 @@ source "$SECURITY_DIR/install-syft.sh"
 source "$SECURITY_DIR/gitleaks.sh"
 source "$SECURITY_DIR/trufflehog.sh"
 source "$SECURITY_DIR/sign-artifacts.sh"
+source "$SECURITY_DIR/audit-signatures.sh"
 
 core_init
 
@@ -64,8 +65,15 @@ case "${1:-}" in
   sign)
     log_info "action" "Signing artifact..."
     install_cosign
-    sign_artifact "${2}"
+    shift
+
+    sign_artifact "$@"
   ;;
+
+  audit)
+    log_info "action" "Auditing signatures..."
+    audit_node_modules
+;;
 
   *)
     echo "Usage: $0 {install|scan|sbom|verify}"

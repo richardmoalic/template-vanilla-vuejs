@@ -62,7 +62,12 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - name: Checkout Code
+      - name: Harden Runner
+        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176
+        with:
+          egress-policy: audit
+
+      - name: Checkout Repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
@@ -75,7 +80,6 @@ jobs:
 
       - name: Load secrets
         uses: infisical/secrets-action@77ab1f4ccd183a543cb5b42435fbd181189f4995 #v1.0.16
-
         if: env.ACT != 'true'
         with:
           identity-id: ${{ vars.INFISICAL_MACHINE_ID }}
@@ -125,7 +129,7 @@ jobs:
         run: |
           sha256sum gitleaks.sarif trufflehog.json > security-reports.sha256
 
-      - name: Security Reports
+      - name: Upload Security Reports
         if: always() && env.ACT != 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f #v7
         with:
