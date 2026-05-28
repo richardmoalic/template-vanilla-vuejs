@@ -30,6 +30,11 @@ local audit_file="pnpm-audit-signatures.json"
 }
 
 main() {
+if ! command -v pnpm >/dev/null; then
+    log_error "audit" "pnpm is missing from PATH. Ensure setup-pnpm ran first."
+    exit 1
+  fi
+
 audit_node_modules "$@"
 }
 

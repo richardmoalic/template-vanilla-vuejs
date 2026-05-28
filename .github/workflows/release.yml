@@ -95,6 +95,16 @@ jobs:
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
+      - name: Setup pnpm
+        uses: ./.github/actions/setup-pnpm
+
+      - name: Install Dependencies
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: bash .github/scripts/pnpm-install.sh --secure
+
+      - name: Audit Dependency Signatures
+        run: bash .github/scripts/security.sh audit
+
       - name: Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 #v6
@@ -109,10 +119,6 @@ jobs:
       - name: Install Security Tooling
         if: steps.semantic.outputs.new_release_published == 'true'
         run: bash .github/scripts/security.sh install
-
-      - name: Audit Dependency Signatures
-        if: steps.semantic.outputs.new_release_published == 'true'
-        run: bash .github/scripts/security.sh audit
 
       - name: Upload Audit Report
         if: always()
@@ -157,14 +163,6 @@ jobs:
         with:
           sbom-path: 'bom.json'
           subject-path: 'build-v${{ steps.semantic.outputs.new_release_version }}.zip'
-
-      - name: Sign release artifact
-        if: steps.semantic.outputs.new_release_published == 'true'
-        run: |
-          bash .github/scripts/security.sh sign \
-          "build-v${{ steps.semantic.outputs.new_release_version }}.zip" \
-          "bom.json" \
-          "security-reports.sha256"
 
       - name: Generate GitHub Attestation
         if: env.ACT != 'true' && steps.semantic.outputs.new_release_published == 'true'
