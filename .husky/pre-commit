@@ -42,3 +42,9 @@ fi
 
 echo "Running lint checks..."
 pnpm lint-staged
+
+
+if git diff --cached --name-only | grep -q "pnpm-lock.yaml"; then
+  echo "📦 Lockfile changed, running vulnerability audit..."
+  bash .github/scripts/audit-vulnerability.sh
+fi

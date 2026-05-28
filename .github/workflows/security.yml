@@ -72,6 +72,11 @@ jobs:
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
+      - name: Setup pnpm
+        uses: ./.github/actions/setup-pnpm
+        with:
+          secure-mode: 'true'
+
       - name: Install Tools
         run: bash .github/scripts/security.sh install
 

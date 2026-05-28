@@ -99,11 +99,6 @@ jobs:
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
-      - name: Setup pnpm
-        uses: ./.github/actions/setup-pnpm
-        with:
-          secure-mode: 'true'
-
       - name: Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 #v6
