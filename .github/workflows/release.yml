@@ -199,8 +199,8 @@ jobs:
             trufflehog.json.bundle.json
             pnpm-audit-signatures.json
             pnpm-audit-signatures.json.bundle.json
-            pnpm-audit-vulnerability.json \
-            pnpm-audit-vulnerability.json.bundle.json \
+            pnpm-audit-vulnerability.json
+            pnpm-audit-vulnerability.json.bundle.json
             security-reports.sha256
             security-reports.sha256.bundle.json
 
