@@ -1,53 +1,3 @@
-# ==========================================================
-# WORKFLOW: Security Scan
-# TOOL: GitHub Actions
-# DOCS: https://docs.github.com/en/actions
-#
-# PURPOSE:
-#   Detect secrets and sensitive data leaks in the repository
-#   using complementary scanning strategies.
-#
-# EXECUTION:
-#   - Trigger:
-#       • pull_request → validate before merge
-#       • push (main) → protect production branch
-#       • schedule → nightly deep scan (02:00 UTC)
-#       • workflow_dispatch → manual trigger
-#   - MODE:
-#       • Gitleaks → non-blocking in local (act), blocking in CI
-#       • TruffleHog → blocking on verified secrets
-#
-# SCANNERS:
-#   - Gitleaks:
-#       • Pattern-based detection (fast)
-#       • Outputs SARIF (GitHub Security integration)
-#   - TruffleHog:
-#       • High-entropy + verified secrets (API validation)
-#       • Scans full git history
-#
-# DEPENDENCIES:
-#   - .gitleaks.toml → custom rules & allowlist
-#   - Docker (optional) → fallback execution
-#   - actions/cache → TruffleHog binary caching
-#
-# USED BY:
-#   - GitHub Security tab (SARIF upload)
-#   - CI pipeline → prevents secret leaks
-#
-# CONTEXT:
-#   - Stack: Vite + pnpm + Vue/React
-#   - Optimized for monorepo / node_modules heavy projects
-#
-# PERFORMANCE:
-#   - Gitleaks → fast (runs every PR)
-#   - TruffleHog → cached binary (avoids Docker pull overhead)
-#
-# MAINTENANCE:
-#   - Update scanner versions regularly
-#   - Review allowlists when false positives appear
-#   - Owner: @gituser
-# ==========================================================
-
 name: 'CI, SECURITY SCAN'
 
 on:
@@ -57,10 +7,12 @@ jobs:
   vulnerability-scan:
     name: Secret & Supply Chain Scan
     runs-on: ubuntu-latest
+
     permissions:
       id-token: write
       contents: read
       security-events: write
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176
@@ -68,7 +20,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout Repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
@@ -81,92 +33,67 @@ jobs:
         run: bash .github/scripts/security.sh install
 
       - name: Add local bin to PATH
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Load secrets
-        uses: infisical/secrets-action@77ab1f4ccd183a543cb5b42435fbd181189f4995 #v1.0.16
         if: env.ACT != 'true'
+        uses: infisical/secrets-action@77ab1f4ccd183a543cb5b42435fbd181189f4995
         with:
           identity-id: ${{ vars.INFISICAL_MACHINE_ID }}
           method: oidc
           project-slug: 'template-v-vuejs'
           env-slug: 'prod'
 
-      - name: Load secrets (Local Act only)
-        if: env.ACT == 'true'
-        run: |
-          export INFISICAL_TOKEN=$(curl -s "$INFISICAL_API_URL/api/v1/auth/universal-auth/login" \
-            -H "Content-Type: application/json" \
-            -d "{
-            \"clientId\":\"$INFISICAL_CLIENT_ID\",
-            \"clientSecret\":\"$INFISICAL_CLIENT_SECRET\"
-          }" | jq -r '.accessToken')
-
-          if [ -z "$INFISICAL_TOKEN" ] || [ "$INFISICAL_TOKEN" = "null" ]; then
-            echo "Failed to obtain Infisical token"
-            exit 1
-          fi
-
-          infisical run \
-            --projectId="$INFISICAL_PROJECT_ID" \
-            --env="$INFISICAL_ENV" \
-            -- env
-        env:
-          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
-          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
-          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
-          INFISICAL_ENV: prod
-          INFISICAL_API_URL: 'https://app.infisical.com'
-
       - name: Audit Dependency Signatures
         id: audit_signatures
         continue-on-error: true
         run: |
-          bash .github/scripts/audit-signatures.sh
+          bash .github/scripts/security.sh audit_node_signatures
 
-      - name: Create Security Warning
+      - name: Create Signature Warning
         if: steps.audit_signatures.outcome == 'failure'
         run: |
-          echo "::warning title=Supply Chain Integrity::Signatures failed verification. Check artifacts for details."
+          echo "::warning title=Supply Chain Integrity::Dependency signatures failed verification."
 
-      - name: Upload Signatures Audit Report
+      - name: Upload Signature Audit Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dependency-signatures-audit
+          name: dependency-signatures-audit-${{ github.run_id }}
           path: pnpm-audit-signatures.json
           if-no-files-found: warn
 
-      - name: Audit Dependency Vulnerability
+      - name: Audit Dependency Vulnerabilities
         id: audit_vulnerability
         continue-on-error: true
-        run: bash .github/scripts/security.sh audit_node_vulnerability
+        run: |
+          bash .github/scripts/security.sh audit_node_vulnerability
 
-      - name: Create Security Vulnerability Warning
+      - name: Create Vulnerability Warning
         if: steps.audit_vulnerability.outcome == 'failure'
         run: |
-          echo "::warning title=Package vulnerabilities::Packages failed verification. Check artifacts for details."
+          echo "::warning title=Dependency Vulnerabilities::Known vulnerabilities detected."
 
       - name: Upload Vulnerability Audit Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dependency-vulnerability-audit
+          name: dependency-vulnerability-audit-${{ github.run_id }}
           path: pnpm-audit-vulnerability.json
           if-no-files-found: warn
 
-      - name: Run Scans
-        run: bash .github/scripts/security.sh scan
+      - name: Run Secret Scans
+        run: |
+          bash .github/scripts/security.sh scan
 
-      - name: Upload Gitleaks Results
-        if: always() && github.event_name != 'pull_request' && env.ACT != 'true' &&
-          hashFiles('gitleaks.sarif') != ''
-        uses: github/codeql-action/upload-sarif@7211b7c8077ea37d8641b6271f6a365a22a5fbfa #v4.36.0
+      - name: Upload Gitleaks SARIF
+        if: always() && github.event_name != 'pull_request' && env.ACT != 'true' && hashFiles('gitleaks.sarif') != ''
+        uses: github/codeql-action/upload-sarif@7211b7c8077ea37d8641b6271f6a365a22a5fbfa
         with:
           sarif_file: gitleaks.sarif
           category: gitleaks
 
-      - name: Generate Report Checksums
+      - name: Generate Security Checksums
         if: always()
         run: |
           bash .github/scripts/generate-checksums.sh \
@@ -178,7 +105,7 @@ jobs:
 
       - name: Upload Security Reports
         if: always() && env.ACT != 'true'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f #v7
+        uses: actions/upload-artifact@v4
         with:
           name: security-reports
           path: |

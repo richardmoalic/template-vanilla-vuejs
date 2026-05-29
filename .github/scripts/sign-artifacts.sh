@@ -13,8 +13,8 @@ sign_artifact() {
   local artifact_path="${1:?Missing artifact path}"
 
   if [[ ! -f "$artifact_path" ]]; then
-    log_error "sign" "File not found: $artifact_path"
-    exit 1
+    log_warn "sign" "Skipping: $artifact_path (File not found)"
+    return 0 
   fi
 
   local filename

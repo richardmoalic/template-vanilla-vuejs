@@ -1,57 +1,4 @@
-# ==========================================================
-# WORKFLOW: CI + Release (Source of Truth)
-# TOOL: GitHub Actions + semantic-release
-# DOCS: https://docs.github.com/en/actions
-#
-# PURPOSE:
-#   Central pipeline responsible for:
-#     1. Versioning (semantic-release)
-#     2. Build generation
-#     3. Artifact creation (dist + zip)
-#
-# EXECUTION:
-#   - Trigger:
-#       • workflow_call → invoked by main pipeline
-#   - MODE:
-#       • BLOCKING → failure stops downstream workflows
-#
-# OUTPUTS:
-#   - version → resolved semantic version (e.g. 1.2.0)
-#   - result  → job status (success / failure)
-#
-# DEPENDENCIES:
-#   - release.config.mjs → semantic-release configuration
-#   - commitlint.config.cjs → commit format enforcement
-#   - package.json → version source of truth
-#   - pnpm → package manager
-#   - custom action: ./.github/actions/setup-pnpm
-#
-# USED BY:
-#   - deploy.yml → deploys built artifacts
-#   - docs.yml → versioned documentation
-#   - pr-updater.yml → PR metadata updates
-#
-# ARTIFACTS:
-#   - dist/ → raw build output
-#   - build-v*.zip → versioned distributable
-#
-# VERSIONING FLOW:
-#   commit → commitlint → semantic-release → package.json → build → artifacts
-#
-# CONTEXT:
-#   - Stack: Vite + pnpm + Vue/React
-#   - Environment: CI (Husky disabled)
-#
-# PERFORMANCE:
-#   - Single build source (no duplicate builds across workflows)
-#
-# MAINTENANCE:
-#   - Ensure semantic-release + commit rules stay aligned
-#   - Update Node / pnpm versions regularly
-#   - Owner: @gituser
-# ==========================================================
-
-name: 'CI , RELEASE'
+name: 'CI, RELEASE'
 
 permissions: {}
 
@@ -64,6 +11,7 @@ on:
         value: ${{ jobs.release.outputs.changelog }}
       result:
         value: ${{ jobs.release.result }}
+
 env:
   HUSKY: 0
 
@@ -71,9 +19,6 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
-  # -----------------------------------
-  # RELEASE + BUILD (SOURCE OF TRUTH)
-  # -----------------------------------
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -90,18 +35,18 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
+        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176
         with:
           egress-policy: audit
 
       - name: Checkout Repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
         with:
           fetch-depth: ${{ env.ACT == 'true' && 1 || 0 }}
 
       - name: Semantic Release
         id: semantic
-        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 #v6
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90
         with:
           semantic_version: 25
           extra_plugins: |
@@ -112,9 +57,10 @@ jobs:
 
       - name: Install Security Tooling
         if: steps.semantic.outputs.new_release_published == 'true'
-        run: bash .github/scripts/security.sh install
+        run: |
+          bash .github/scripts/security.sh install
 
-      - name: Build app + docs
+      - name: Build App + Docs
         if: steps.semantic.outputs.new_release_published == 'true'
         uses: ./.github/actions/build-app
         with:
@@ -123,7 +69,8 @@ jobs:
           generate_docs: 'true'
 
       - name: Download Security Reports
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 #v8
+        if: steps.semantic.outputs.new_release_published == 'true'
+        uses: actions/download-artifact@v4
         with:
           name: security-reports
           path: ./
@@ -149,33 +96,44 @@ jobs:
         if: env.ACT != 'true' && steps.semantic.outputs.new_release_published == 'true'
         uses: actions/attest-sbom@v2
         with:
-          sbom-path: 'bom.json'
-          subject-path: 'build-v${{ steps.semantic.outputs.new_release_version }}.zip'
+          sbom-path: bom.json
+          subject-path: build-v${{ steps.semantic.outputs.new_release_version }}.zip
 
-      - name: Generate GitHub Attestation
+      - name: Generate Build Provenance
         if: env.ACT != 'true' && steps.semantic.outputs.new_release_published == 'true'
         uses: actions/attest-build-provenance@v2
         with:
-          subject-path: 'build-v${{ steps.semantic.outputs.new_release_version }}.zip'
+          subject-path: build-v${{ steps.semantic.outputs.new_release_version }}.zip
           show-summary: true
 
-      - name: Upload release assets
+      - name: Upload Release Assets
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
-          FILES=$(ls build-* bom.json* gitleaks.sarif* trufflehog.json* pnpm-audit-* security-reports.sha256* 2>/dev/null || true)
+          FILES=$(find . -maxdepth 1 -type f \( \
+            -name "build-*" \
+            -o -name "bom.json*" \
+            -o -name "gitleaks.sarif*" \
+            -o -name "trufflehog.json*" \
+            -o -name "pnpm-audit-*" \
+            -o -name "security-reports.sha256*" \
+          \))
 
           if [ -n "$FILES" ]; then
-            gh release upload "v${{ steps.semantic.outputs.new_release_version }}" $FILES --clobber
+            gh release upload \
+              "v${{ steps.semantic.outputs.new_release_version }}" \
+              $FILES \
+              --clobber
           else
-            echo "⚠️ No assets found to upload."
+            echo "⚠️ No release assets found."
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Secured Artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f #v7
+      - name: Upload Signed Build Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: signed-build
+          name: signed-build-${{ github.run_id }}
           path: |
             build-*
             bom.json*
@@ -183,12 +141,7 @@ jobs:
             trufflehog.json*
             pnpm-audit*
             security-reports.sha256*
-
-      - name: List Artifacts
-        run: |
-          gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          if-no-files-found: warn
 
       - name: Generate Workflow Summary
         if: steps.semantic.outputs.new_release_published == 'true'
@@ -201,7 +154,8 @@ jobs:
             echo ""
             echo "### Security"
             echo "- Dependency signatures verified"
-            echo "- Cosign artifact signing completed"
+            echo "- Vulnerability audit completed"
+            echo "- Cosign signing completed"
             echo "- SBOM generated"
             echo "- GitHub provenance generated"
             echo ""
