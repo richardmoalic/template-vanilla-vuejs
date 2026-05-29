@@ -82,7 +82,7 @@ run_scan_trufflehog() {
 
   ensure_file "$json" '{"results":[]}'
 
-  if jq -es 'length > 0' "$json" >/dev/null 2>&1; then
+  if jq -e 'select(.Verified == true)' "$json" >/dev/null 2>&1; then
     log_error "[trufflehog] verified secrets detected!"
     return 1
   fi
