@@ -75,13 +75,13 @@ exit $scan_failed
   ;;
 
   audit_node_vulnerability)
-    log_info "action" "Auditing signatures..."
-    audit_signatures
+    log_info "action" "Auditing vulnerabilities..."
+    audit_vulnerability
   ;;
 
   audit_node_signatures)
-    log_info "action" "Auditing vulnerabilities..."
-    audit_vulnerability
+    log_info "action" "Auditing signatures..."
+    audit_signatures
   ;;
 
   *)
