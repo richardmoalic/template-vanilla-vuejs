@@ -53,6 +53,9 @@ install_trufflehog() {
 # Run scan
 run_scan_trufflehog() {
   log_info "[trufflehog] Starting scan..."
+  local json="trufflehog.json"
+
+  ensure_file "$json" '{"results":[]}'
 
 
   if [ "${DRY_RUN:-false}" = "true" ]; then
@@ -60,32 +63,31 @@ run_scan_trufflehog() {
     return 0
   fi
 
-  local json="trufflehog.json"
 
-  run "[trufflehog]" \
-    "trufflehog git file://\"$PWD\" --only-verified --no-update --json > \"$json\""
-
+   if ! run "[gitleaks] scan" \
+    trufflehog git "file://$PWD" \
+      --only-verified \
+      --no-update \
+      --json \
+      > "$json"
+  then
     local status=$?
 
-    if [ $status -ne 0 ] && [ ! -s "$json" ]; then
+    if [[ ! -s "$json" ]]; then
       log_error "[trufflehog] scan failed unexpectedly"
-    return $status
+      ensure_file "$json" '{"results":[]}'
+      return $status
+    fi
   fi
 
-  if [ ! -s "$json" ]; then
-    log_info "[trufflehog] No secrets found → writing empty report"
-    echo '{"results":[]}' > "$json"
-  fi
+  ensure_file "$json" '{"results":[]}'
 
-# If secrets found → fail CI
-  if jq -e '.results | length > 0' "$json" >/dev/null 2>&1; then
-    log_error "[trufflehog] verified secrets detected! See $json"
+  if jq -e 'length > 0' "$json" >/dev/null 2>&1; then
+    log_error "[trufflehog] verified secrets detected!"
     return 1
   fi
 
   log_success "[trufflehog] scan completed"
-  return 0
-
 }
 
 main(){

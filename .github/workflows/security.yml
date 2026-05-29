@@ -152,7 +152,12 @@ jobs:
       - name: Generate Report Checksums
         if: always()
         run: |
-          sha256sum gitleaks.sarif trufflehog.json > security-reports.sha256
+          bash .github/scripts/generate-checksums.sh \
+            security-reports.sha256 \
+            gitleaks.sarif \
+            trufflehog.json \
+            pnpm-audit-signatures.json \
+            pnpm-audit-vulnerability.json
 
       - name: Upload Security Reports
         if: always() && env.ACT != 'true'
@@ -163,3 +168,6 @@ jobs:
             gitleaks.sarif
             trufflehog.json
             security-reports.sha256
+            pnpm-audit-signatures.json
+            pnpm-audit-vulnerability.json
+          if-no-files-found: warn

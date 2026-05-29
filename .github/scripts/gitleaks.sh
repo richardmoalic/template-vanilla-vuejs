@@ -83,14 +83,20 @@ run_scan_gitleaks() {
     return 0
   fi
 
-  run "[gitleaks] scan" gitleaks detect \
+  if ! run "[gitleaks] scan" \
+  gitleaks detect \
     --source . \
     --report-format sarif \
     --report-path gitleaks.sarif \
     --redact \
-    --verbose || true
+    --verbose
+  then
+    log_warn "[gitleaks] findings detected"
+  fi
 
-   ensure_file gitleaks.sarif '{"version":"2.1.0","runs":[]}'
+  ensure_file \
+    "gitleaks.sarif" \
+    '{"version":"2.1.0","runs":[]}'
 
   if [ "${ACT:-}" = "true" ]; then
     log_warn "::warning::[gitleaks] Non-blocking in act mode"

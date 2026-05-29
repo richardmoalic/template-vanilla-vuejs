@@ -40,10 +40,13 @@ case "${1:-}" in
   scan)
     log_info "action" "Running secret scanners..."
     # Ensure tools exist before scanning
+    scan_failed=0
     install_gitleaks
     install_trufflehog
-    run_scan_gitleaks
-    run_scan_trufflehog
+    run_scan_gitleaks || scan_failed=1
+    run_scan_trufflehog || scan_failed=1
+
+exit $scan_failed
     ;;
     
   sbom)

@@ -90,7 +90,9 @@ ensure_file() {
   local file="$1"
   local fallback="$2"
 
-  if [ ! -s "$file" ]; then
-    echo "$fallback" > "$file"
+  mkdir -p "$(dirname "$file")"
+
+  if [[ ! -f "$file" || ! -s "$file" ]]; then
+    printf '%s\n' "$fallback" > "$file"
   fi
 }
