@@ -162,24 +162,13 @@ jobs:
       - name: Upload release assets
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
-          gh release upload \
-            "v${{ steps.semantic.outputs.new_release_version }}" \
-            build-*.zip \
-            build-*.sha256 \
-            build-*.bundle.json \
-            bom.json \
-            bom.json.bundle.json \
-            gitleaks.sarif \
-            gitleaks.sarif.bundle.json \
-            trufflehog.json \
-            trufflehog.json.bundle.json \
-            pnpm-audit-signatures.json \
-            pnpm-audit-signatures.json.bundle.json \
-            pnpm-audit-vulnerability.json \
-            pnpm-audit-vulnerability.json.bundle.json \
-            security-reports.sha256 \
-            security-reports.sha256.bundle.json \
-            --clobber
+          FILES=$(ls build-* bom.json* gitleaks.sarif* trufflehog.json* pnpm-audit-* security-reports.sha256* 2>/dev/null || true)
+
+          if [ -n "$FILES" ]; then
+            gh release upload "v${{ steps.semantic.outputs.new_release_version }}" $FILES --clobber
+          else
+            echo "⚠️ No assets found to upload."
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -188,21 +177,12 @@ jobs:
         with:
           name: signed-build
           path: |
-            build-*.zip
-            build-*.sha256
-            build-*.bundle.json
-            bom.json
-            bom.json.bundle.json
-            gitleaks.sarif
-            gitleaks.sarif.bundle.json
-            trufflehog.json
-            trufflehog.json.bundle.json
-            pnpm-audit-signatures.json
-            pnpm-audit-signatures.json.bundle.json
-            pnpm-audit-vulnerability.json
-            pnpm-audit-vulnerability.json.bundle.json
-            security-reports.sha256
-            security-reports.sha256.bundle.json
+            build-*
+            bom.json*
+            gitleaks.sarif*
+            trufflehog.json*
+            pnpm-audit*
+            security-reports.sha256*
 
       - name: List Artifacts
         run: |
