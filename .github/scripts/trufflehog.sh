@@ -64,7 +64,7 @@ run_scan_trufflehog() {
   fi
 
 
-   if ! run "[gitleaks] scan" \
+   if ! run "[trufflehog] scan" \
     trufflehog git "file://$PWD" \
       --only-verified \
       --no-update \
@@ -82,7 +82,7 @@ run_scan_trufflehog() {
 
   ensure_file "$json" '{"results":[]}'
 
-  if jq -e 'length > 0' "$json" >/dev/null 2>&1; then
+  if jq -es 'length > 0' "$json" >/dev/null 2>&1; then
     log_error "[trufflehog] verified secrets detected!"
     return 1
   fi
