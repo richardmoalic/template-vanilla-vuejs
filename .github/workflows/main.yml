@@ -79,7 +79,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: ci-main-${{ github.ref }}
   cancel-in-progress: true
 
 env:
