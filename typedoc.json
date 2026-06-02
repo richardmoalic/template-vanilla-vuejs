@@ -1,0 +1,22 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "out": "docs/api",
+  "plugin": ["typedoc-plugin-markdown"],
+  "hideGenerator": true,
+  "cleanOutputDir": true,
+  "exclude": ["**/*.test.js", "**/node_modules/**"],
+
+  "includeVersion": true,
+  "searchInComments": true,
+  "disableSources": false,
+
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": ["DOM", "ESNext"]
+  }
+}
