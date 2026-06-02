@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.typedoc.json",
   "include": ["src/**/*.js"],
   "exclude": ["**/*.spec.js", "**/*.test.js", "node_modules"],
   "compilerOptions": {

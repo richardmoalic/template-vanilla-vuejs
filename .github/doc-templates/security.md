@@ -9,6 +9,7 @@
 ## Overview
 
 This project implements layered supply-chain security controls.
+Follow SLSA 3 guidelines.
 
 ## Security Controls
 
