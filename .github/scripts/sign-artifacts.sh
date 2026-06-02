@@ -9,57 +9,36 @@ set -euo pipefail
 SIGN_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 source "$SIGN_SCRIPT_DIR/lib/logger.sh"
 
-sign_artifact() {
-  local artifact_path="${1:?Missing artifact path}"
+generate_checksums() {
+  local output_file="${1:-checksums.txt}"
+  shift
 
-  if [[ ! -f "$artifact_path" ]]; then
-    log_warn "sign" "Skipping: $artifact_path (File not found)"
-    return 0 
-  fi
-
-  local filename
-  filename=$(basename "$artifact_path")
-
-  local checksum_file="${artifact_path}.sha256"
-
-  log_info "sign" "Generating checksum for $filename"
-
-  sha256sum "$artifact_path" > "$checksum_file"
-
-  log_info "sign" "Signing $filename"
-
-  cosign sign-blob "$artifact_path" \
-    --bundle "${artifact_path}.bundle.json" \
-    --yes
-
-  log_info "sign" "Signing checksum for $filename"
-
-  cosign sign-blob "$checksum_file" \
-    --bundle "${checksum_file}.bundle.json" \
-    --yes
-
-  log_success "sign" "Signed: $filename"
-}
-
-main() {
-
-  if ! command -v cosign >/dev/null; then
-    log_error "sign" "cosign not found"
-    exit 1
-  fi
-
-  if [[ "$#" -eq 0 ]]; then
-    log_error "sign" "No artifacts provided"
-    exit 1
-  fi
+  : > "$output_file"
 
   for artifact in "$@"; do
-    sign_artifact "$artifact"
+    if [[ -f "$artifact" ]]; then
+      sha256sum "$artifact" >> "$output_file"
+    else
+      log_warn "sign" "Skipping missing file: $artifact"
+    fi
   done
 
-  log_success "sign" "All artifacts signed successfully"
+  log_success "sign" "Generated $output_file"
 }
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  main "$@"
-fi
+sign_checksums() {
+  local checksums_file="${1:-checksums.txt}"
+
+  [[ -f "$checksums_file" ]] || {
+    log_error "sign" "$checksums_file not found"
+    exit 1
+  }
+
+  log_info "sign" "Signing $checksums_file"
+
+  cosign sign-blob "$checksums_file" \
+    --bundle "${checksums_file}.bundle.json" \
+    --yes
+
+  log_success "sign" "Signed $checksums_file"
+}

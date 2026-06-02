@@ -67,11 +67,16 @@ exit $scan_failed
     ;;
 
   sign)
-    log_info "action" "Signing artifact..."
+    log_info "action" "Generating checksums manifest..."
+
     install_cosign
     shift
 
-    sign_artifact "$@"
+    generate_checksums checksums.txt "$@"
+
+    log_info "action" "Signing checksum manifest..."
+
+    sign_checksums checksums.txt
   ;;
 
   audit_node_vulnerability)

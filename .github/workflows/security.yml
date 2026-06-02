@@ -57,7 +57,7 @@ jobs:
 
       - name: Upload Signature Audit Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f #v7
         with:
           name: dependency-signatures-audit-${{ github.run_id }}
           path: pnpm-audit-signatures.json
@@ -76,7 +76,7 @@ jobs:
 
       - name: Upload Vulnerability Audit Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f #v7
         with:
           name: dependency-vulnerability-audit-${{ github.run_id }}
           path: pnpm-audit-vulnerability.json
@@ -93,19 +93,9 @@ jobs:
           sarif_file: gitleaks.sarif
           category: gitleaks
 
-      - name: Generate Security Checksums
-        if: always()
-        run: |
-          bash .github/scripts/generate-checksums.sh \
-            security-reports.sha256 \
-            gitleaks.sarif \
-            trufflehog.json \
-            pnpm-audit-signatures.json \
-            pnpm-audit-vulnerability.json
-
       - name: Upload Security Reports
         if: always() && env.ACT != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f #v7
         with:
           name: security-reports
           path: |
