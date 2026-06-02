@@ -1,0 +1,44 @@
+name: 'Security: CodeQL Analysis'
+
+on:
+  push:
+    branches: ['main', 'develop', 'staging']
+  pull_request:
+    branches: ['main', 'develop']
+  schedule:
+    - cron: '30 4 * * 2' # Runs every Tuesday at 04:30 UTC
+
+jobs:
+  analyze:
+    name: Analyze Code Integrity
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Analyzes the frontend code as well as your DevSecOps pipeline/shell script context
+        language: ['javascript-typescript', 'actions']
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Extended security queries track down deep vulnerabilities, injections, and script supply-chain flaws
+          queries: security-extended,security-and-quality
+
+      # For JavaScript/TypeScript and Actions, CodeQL analyzes the source files directly.
+      # No manual build step or compilation is required here.
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'

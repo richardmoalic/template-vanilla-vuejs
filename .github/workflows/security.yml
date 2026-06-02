@@ -46,7 +46,6 @@ jobs:
 
       - name: Audit Dependency Signatures
         id: audit_signatures
-        continue-on-error: true
         run: |
           bash .github/scripts/security.sh audit_node_signatures
 
@@ -65,7 +64,6 @@ jobs:
 
       - name: Audit Dependency Vulnerabilities
         id: audit_vulnerability
-        continue-on-error: true
         run: |
           bash .github/scripts/security.sh audit_node_vulnerability
 
