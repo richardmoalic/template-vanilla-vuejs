@@ -95,12 +95,12 @@ runs:
       shell: bash
       run: bash ./.github/scripts/cache-vars.sh
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e #6.4.0
       with:
         node-version-file: '.nvmrc'
 
     # Pnpm Store Cache
-    - uses: actions/cache@v4
+    - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae #5.0.5
       with:
         path: ${{ env.PNPM_CACHE_DIR }}
         key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -108,7 +108,7 @@ runs:
           ${{ inputs.secure-mode == 'false' && format('{0}-{1}-pnpm-store-', env.CACHE_PREFIX, runner.os) || '' }}
 
     # Vite/Vitest Cache
-    - uses: actions/cache@v4
+    - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae #5.0.5
       if: inputs.secure-mode == 'false' && github.event.pull_request.head.repo.fork == false
       with:
         path: |
@@ -121,7 +121,7 @@ runs:
     # Playwright cache
     - name: Cache Playwright
       if: inputs.secure-mode == 'false'
-      uses: actions/cache@v4
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae #5.0.5
       with:
         path: ${{ env.PLAYWRIGHT_CACHE_DIR }}
         key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}

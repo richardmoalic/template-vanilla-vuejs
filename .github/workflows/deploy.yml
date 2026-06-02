@@ -100,13 +100,11 @@ jobs:
           ZIP_FILE=$(ls build-*.zip)
           echo "ZIP_FILE=$ZIP_FILE" >> $GITHUB_ENV
 
-          # Verify signature bundle
           bash .github/scripts/security.sh verify \
-            "$ZIP_FILE" \
-            "${ZIP_FILE}.bundle.json"
+            "checksums.txt" \
+            "checksums.txt.bundle.json"
 
-          # Verify checksum integrity
-          sha256sum -c "${ZIP_FILE}.sha256"
+          grep "$ZIP_FILE" checksums.txt | sha256sum -c -
 
           echo "🚀 Verification Passed. Proceeding to deploy."
 
