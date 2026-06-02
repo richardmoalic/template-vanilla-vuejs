@@ -9,6 +9,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src/**/*.js"],
+  "include": ["src/utils", "src/components", "src/composables"],
   "exclude": ["**/*.spec.js", "**/*.test.js", "node_modules", "dist"]
 }
