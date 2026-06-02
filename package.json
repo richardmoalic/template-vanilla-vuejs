@@ -28,6 +28,11 @@
       "path": "cz-git"
     }
   },
+  "pnpm": {
+    "overrides": {
+      "glob": "^10.5.0"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "dev:staging": "vite --mode staging",
