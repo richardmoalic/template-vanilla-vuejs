@@ -70,6 +70,14 @@ runs:
       shell: bash
       run: ./.github/scripts/lib/permissions-fix.sh
 
+    - name: Debug workspace
+      shell: bash
+      run: |
+        pwd
+        ls -la
+        ls -la .github
+        find .github -name "cache-vars.sh"
+
     - name: Initialize Standardized Cache Variables
       shell: bash
       run: bash ./.github/scripts/cache/cache-vars.sh
