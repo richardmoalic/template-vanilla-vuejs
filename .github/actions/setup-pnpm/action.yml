@@ -25,44 +25,23 @@
 #   - Supports CI and local (act) environments
 #
 # INPUTS:
+#   - secure-mode:
+#       • If true, disables non-essential caches and restore-keys
 #   - node-version:
 #       • Node.js version override (default: 24)
 #   - install:
 #       • Whether to run pnpm install (default: true)
 #
 # CACHE STRATEGY:
-#   - Prefix separation:
-#       • ci-* → GitHub Actions
-#       • act-* → local runs (act)
+#   - Prefix separation via cache-vars.sh:
+#       • act-local-* / pr-NUMBER-* / prod-main-* / branch-NAME-*
 #   - Keyed by:
 #       • OS
 #       • pnpm-lock.yaml hash
 #
-# PERFORMANCE OPTIMIZATION:
-#   - pnpm fetch → preloads dependencies
-#   - pnpm install --prefer-offline → faster installs
-#   - Layered caches → minimizes cold starts
-#
-# SAFETY:
-#   - Frozen lockfile → ensures reproducible builds
-#   - Fork protection → avoids unsafe cache sharing
-#
-# USED BY:
-#   - ci.yml → lint + unit
-#   - e2e.yml → tests
-#   - release.yml → build
-#   - docs.yml → docs generation
-#
-# CONTEXT:
-#   - Stack: Vite + pnpm + Vue/React
-#
-# KNOWN ISSUES:
-#   - Permissions mismatch in Docker/act → fixed via chmod
-#
 # MAINTENANCE:
-#   - Update Node / pnpm versions periodically
-#   - Bump CACHE_PREFIX when cache invalidation needed
 #   - Owner: @gituser
+#   - VERSION: v3.1.0
 # ==========================================================
 
 name: 'Setup Node + pnpm'
@@ -93,7 +72,7 @@ runs:
 
     - name: Initialize Standardized Cache Variables
       shell: bash
-      run: ./.github/scripts/cache/cache-vars.sh
+      run: bash ./.github/scripts/cache/cache-vars.sh
 
     - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e #6.4.0
       with:
