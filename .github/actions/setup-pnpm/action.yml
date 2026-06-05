@@ -91,7 +91,7 @@ runs:
       shell: bash
       run: ./.github/scripts/lib/permissions-fix.sh
 
-    - name: Set Cache Variables
+    - name: Initialize Standardized Cache Variables
       shell: bash
       run: ./.github/scripts/cache/cache-vars.sh
 
@@ -101,9 +101,10 @@ runs:
         node-version: ${{ inputs.node-version }}
 
     # Pnpm Store Cache
-    - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae #5.0.5
+    - name: Cache pnpm store
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae #5.0.5
       with:
-        path: ${{ env.PNPM_CACHE_DIR }}
+        path: ${{ env.PNPM_STORE_DIR }}
         key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ inputs.secure-mode == 'false' && format('{0}-{1}-pnpm-store-', env.CACHE_PREFIX, runner.os) || '' }}
@@ -114,8 +115,8 @@ runs:
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae #5.0.5
       with:
         path: |
-          ${{ env.TOOLS_CACHE_DIR }}/vite
-          ${{ env.TOOLS_CACHE_DIR }}/vitest
+          ${{ env.VITE_CACHE_DIR }}
+          ${{ env.VITEST_CACHE_DIR }}
         key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ env.CACHE_PREFIX }}-${{ runner.os }}-build-
@@ -125,7 +126,7 @@ runs:
       if: inputs.secure-mode == 'false'
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae #5.0.5
       with:
-        path: ${{ env.TOOLS_CACHE_DIR }}/playwright
+        path: ${{ env.PLAYWRIGHT_CACHE_DIR }}
         key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ env.CACHE_PREFIX }}-${{ runner.os }}-playwright-
