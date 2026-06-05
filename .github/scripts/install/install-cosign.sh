@@ -23,7 +23,6 @@ set -euo pipefail
 DRY_RUN="${DRY_RUN:-false}"
 COSIGN_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
-source "$COSIGN_SCRIPT_DIR/lib/core.sh"
 source "$COSIGN_SCRIPT_DIR/lib/install.sh"
 source "$COSIGN_SCRIPT_DIR/versions.env"
 
@@ -43,10 +42,7 @@ install_cosign() {
   "cosign"
 }
 
-main() {
-  install_cosign
-}
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  main "$@"
+  install_cosign
 fi

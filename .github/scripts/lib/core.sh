@@ -58,7 +58,7 @@ run() {
   local start end status
   start=$(date +%s%3N)
 
-  bash -c "$cmd"
+  "${cmd[@]}"
   status=$?
 
   end=$(date +%s%3N)
@@ -87,12 +87,17 @@ core_init() {
 }
 
 ensure_file() {
-  local file="$1"
-  local fallback="$2"
+  local name="$1" version="$2" url="$3" sha="$4" type="$5" bin_name="$6"
+  local local_bin="$BIN_DIR/$bin_name"
 
-  mkdir -p "$(dirname "$file")"
-
-  if [[ ! -f "$file" || ! -s "$file" ]]; then
-    printf '%s\n' "$fallback" > "$file"
+  if [ -x "$local_bin" ]; then
+    log_info "$name" "Verified local version exists."
+    return 0
   fi
+
+  if command -v "$bin_name" &>/dev/null; then
+    log_warn "$name" "Found in system PATH, but NOT our verified version. Installing project-local binary..."
+  fi
+
+  install_tool "$name" "$version" "$url" "$sha" "$type" "$bin_name"
 }

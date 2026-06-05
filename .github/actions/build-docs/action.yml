@@ -1,0 +1,43 @@
+# ==========================================================
+# ACTION: Build Docs
+# PURPOSE: Compiles D2, shdoc, TypeDoc, and bundles VitePress
+# ==========================================================
+name: 'Build Docs'
+description: 'Generates multi-layer references (Shell, D2, TypeDoc) and compiles VitePress'
+
+inputs:
+  version:
+    description: 'Documentation targeted version'
+    required: true
+  base_path:
+    description: 'Base path for the VitePress router documentation site'
+    default: '/docs/'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Environment
+      uses: ./.github/actions/setup-pnpm
+      with:
+        install: 'true'
+        secure-mode: 'false'
+
+    - name: Install doc tools
+      shell: bash
+      run: ./.github/scripts/wrapper/docs.sh install
+
+    - name: Generate Guides
+      shell: bash
+      run: ./.github/scripts/build/generate-docs.sh
+      env:
+        DOC_VERSION: ${{ inputs.version }}
+
+    - name: Generate References
+      shell: bash
+      run: ./.github/scripts/wrapper/docs.sh all
+
+    - name: Build VitePress
+      shell: bash
+      run: |
+        export VITEPRESS_BASE="${{ inputs.base_path }}"
+        pnpm docs:build

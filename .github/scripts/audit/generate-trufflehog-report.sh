@@ -27,39 +27,18 @@ set -euo pipefail
 TRUFFLEHOG_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 source "$TRUFFLEHOG_DIR/lib/core.sh"
-
-# shellcheck source=lib/install.sh
 source "$TRUFFLEHOG_DIR/lib/install.sh"
 
-# shellcheck source=versions.env
-source "$TRUFFLEHOG_DIR/versions.env"
 
-: "${TRUFFLEHOG_VERSION:?Missing versions.env}"
-: "${TRUFFLEHOG_URL:?Missing versions.env}"
-: "${TRUFFLEHOG_SHA:?Missing versions.env}"
-
-
-install_trufflehog() {
-  install_tool \
-  "trufflehog" \
-  "$TRUFFLEHOG_VERSION" \
-  "$TRUFFLEHOG_URL" \
-  "$TRUFFLEHOG_SHA" \
-  "tar" \
-  "trufflehog"
-
-}
-
-# Run scan
 run_scan_trufflehog() {
-  log_info "[trufflehog] Starting scan..."
+  log_info "[trufflehog]" "Starting scan..."
   local json="trufflehog.json"
 
-  ensure_file "$json" '{"results":[]}'
+  ensure_file "trufflehog" "$TRUFFLEHOG_VERSION" "$TRUFFLEHOG_URL" "$TRUFFLEHOG_SHA" "tar" "trufflehog"
 
 
   if [ "${DRY_RUN:-false}" = "true" ]; then
-    log_debug "[dry-run] trufflehog scan"
+    log_debug "trufflehog" "[dry-run] Skipping scan"
     return 0
   fi
 
@@ -71,30 +50,17 @@ run_scan_trufflehog() {
       --json \
       > "$json"
   then
-    local status=$?
-
-    if [[ ! -s "$json" ]]; then
-      log_error "[trufflehog] scan failed unexpectedly"
-      ensure_file "$json" '{"results":[]}'
-      return $status
+    if [[ -s "$json" ]]; then
+            log_error "trufflehog" "VERIFIED secrets detected in history!"
+            return 1
     fi
   fi
 
-  ensure_file "$json" '{"results":[]}'
-
-  if jq -e 'select(.Verified == true)' "$json" >/dev/null 2>&1; then
-    log_error "[trufflehog] verified secrets detected!"
-    return 1
-  fi
-
-  log_success "[trufflehog] scan completed"
+  log_success "trufflehog" "Clean scan (no verified secrets found)."
 }
 
-main(){
-  install_trufflehog
-  run_scan_trufflehog
-}
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  main "$@"
+  core_init
+  run_scan_trufflehog
 fi

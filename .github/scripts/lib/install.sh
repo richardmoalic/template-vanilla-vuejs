@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 # ==========================================================
 # SCRIPT: install.sh
-# PURPOSE:
+# PURPOSE: Install a tool
 #
 # FEATURES:
 #
 # USAGE:
+#   install_tool <name> <version> <url> <sha256> <type> <bin_name>
+#
+# Types:
+#   - tar   : Archive that needs extraction
+#   - binary: Direct binary download (no extraction)
+#   - zip   : Zip archive that needs extraction
+# -------------------------------
 #
 # VERSION: v1.0.0
 # ==========================================================
@@ -33,6 +40,7 @@ install_tool() {
   # -------------------------------
   if [ -x "$target_bin" ]; then
     log_info "$name" "Already installed → skipping"
+    log_group_end
     return 0
   fi
 
@@ -41,9 +49,16 @@ install_tool() {
   # -------------------------------
   local cached_bin
   if cached_bin="$(cache_restore "$name" "$version" "$bin_name")"; then
-    run "Restoring $name from cache" cp "$cached_bin" "$target_bin"
-    run "Setting permissions" chmod +x "$target_bin"
-    return 0
+    if verify_hash "$cached_bin" "$sha"; then
+      run "Restoring $name from cache" cp "$cached_bin" "$target_bin"
+      run "Setting permissions" chmod +x "$target_bin"
+      log_success "$name" "Restored from cache"
+      log_group_end
+      return 0
+      else
+       log_warn "$name" "Cache corrupted! Re-downloading..."
+       rm -f "$cached_bin"
+    fi
   fi
 
   # -------------------------------
@@ -60,9 +75,8 @@ install_tool() {
   else
     log_warn "$name" "Cache miss → downloading"
 
-    (
-      tmp_file="$(mktemp)"
-      trap 'rm -f "$tmp_file"' EXIT
+    local tmp_file
+    tmp_file="$(mktemp)"
 
       download_file "$url" "$tmp_file"
       verify_file "$url" "$tmp_file" "$sha"
@@ -70,17 +84,11 @@ install_tool() {
       if [ "$DRY_RUN" != "true" ]; then
         cache_store_archive "$name" "$version" "$tmp_file"
         target="$(cache_get_path "$name" "$version")"
+        rm -f "$tmp_file"
       else
         target="$tmp_file"
       fi
-
-      # extraction happens outside subshell
-      echo "$target" > /tmp/.install_target
-    )
-
-    target="$(cat /tmp/.install_target)"
-    rm -f /tmp/.install_target
-  fi
+    fi
 
   # -------------------------------
   # 4. Extract

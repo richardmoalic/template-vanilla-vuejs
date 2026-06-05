@@ -1,76 +1,66 @@
 #!/usr/bin/env bash
 # ==========================================================
 # SCRIPT: cache.sh
-# VERSION: v1.0.0
+# PURPOSE: Secure binary storage with integrity verification
 # ==========================================================
 
-CACHE_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$CACHE_SCRIPT_DIR/core.sh"
-source "$CACHE_SCRIPT_DIR/logger.sh"
+CACHE_LIB_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "$CACHE_LIB_DIR/logger.sh"
 
-cache_get_path() {
-  echo "${CACHE_DIR}/$1/$2/archive"
-}
+# Note: TOOLS_CACHE_DIR should be exported from cache-vars.sh
+: "${TOOLS_CACHE_DIR:?Run cache-vars.sh first}"
 
-cache_get_bin_path() {
-  echo "${CACHE_DIR}/$1/$2/$3"
+# Helper to resolve paths: .github/tools/cache/gitleaks/8.18.2/gitleaks
+_cache_resolve() {
+    local name="$1" version="$2" file="${3:-archive}"
+    echo "$TOOLS_CACHE_DIR/$name/$version/$file"
 }
 
 cache_is_valid() {
-  local file="$1" sha="$2"
-  [ -f "$file" ] || return 1
-  log_info "cache" "Validating checksum for $(basename "$file")"
-  printf "%s  %s\n" "$sha" "$file" | sha256sum -c --status
+    local file="$1" sha="$2"
+    [[ -f "$file" ]] || return 1
+    # Verify the archive matches the hardcoded SHA in versions.env
+    printf "%s  %s\n" "$sha" "$file" | sha256sum -c --status
 }
 
 cache_restore() {
-   local name="$1" version="$2" bin_name="$3"
-  local bin_path
-  bin_path="$(cache_get_bin_path "$name" "$version" "$bin_name")"
+    local name="$1" version="$2" bin_name="$3"
+    local bin_path
+    bin_path="$(_cache_resolve "$name" "$version" "$bin_name")"
+    local hash_path="${bin_path}.sha256"
 
-  if [ -x "$bin_path" ]; then
-    log_success "cache" "Restored ${name}@${version} from cache"
+    # 1. Existence check
+    [[ -x "$bin_path" && -f "$hash_path" ]] || return 1
+
+    # 2. Integrity check (Verify against the hash created at STORAGE time)
+    if ! sha256sum -c "$hash_path" >/dev/null 2>&1; then
+        log_error "cache" "INTEGRITY FAILURE: Poisoned binary detected for $name. Purging."
+        rm -f "$bin_path" "$hash_path"
+        return 1
+    fi
+
     echo "$bin_path"
-    return 0
-  fi
-
-  return 1
-}
-
-cache_store_archive() {
-  local name="$1" version="$2" tmp_file="$3"
-  local dest
-  dest="$(cache_get_path "$name" "$version")"
-
-  mkdir -p "$(dirname "$dest")"
-
-  # atomic write
-  cp "$tmp_file" "${dest}.tmp"
-  mv "${dest}.tmp" "$dest"
-
-  log_success "cache" "Stored archive ${name}@${version}"
 }
 
 cache_store_binary() {
-  local name="$1" version="$2" bin_name="$3" source_bin="$4"
-  local dest
-  dest="$(cache_get_bin_path "$name" "$version" "$bin_name")"
+    local name="$1" version="$2" bin_name="$3" source_bin="$4"
+    local dest
+    dest="$(_cache_resolve "$name" "$version" "$bin_name")"
 
-  mkdir -p "$(dirname "$dest")"
+    mkdir -p "$(dirname "$dest")"
 
-  cp "$source_bin" "${dest}.tmp"
-  chmod +x "${dest}.tmp"
-  mv "${dest}.tmp" "$dest"
+    # Atomic write with metadata
+    install -m 755 "$source_bin" "$dest"
+    sha256sum "$dest" > "${dest}.sha256"
 
-  log_success "cache" "Stored binary ${name}@${version}"
+    log_success "cache" "Stored verified binary: $name ($version)"
 }
 
+cache_store_archive() {
+    local name="$1" version="$2" tmp_file="$3"
+    local dest
+    dest="$(_cache_resolve "$name" "$version" "archive")"
 
-
-cache_cleanup() {
-  local max_age_days="${CACHE_MAX_AGE_DAYS:-30}"
-  
-  log_info "cache" "Cleaning cache older than ${max_age_days} days"
-  find "$CACHE_DIR" -type f -name "archive" -mtime "+$max_age_days" -delete || true
-  find "$CACHE_DIR" -type d -empty -delete || true
+    mkdir -p "$(dirname "$dest")"
+    cp "$tmp_file" "$dest"
 }

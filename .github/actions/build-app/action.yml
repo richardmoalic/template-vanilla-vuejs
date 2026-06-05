@@ -14,9 +14,10 @@ inputs:
   base_path:
     description: 'Base path for Vite'
     required: true
+    default: '/'
 
   generate_docs:
-    description: 'Whether to generate docs'
+    description: 'Generates docs'
     default: 'false'
 
 runs:
@@ -29,6 +30,7 @@ runs:
       uses: ./.github/actions/setup-pnpm
       with:
         install: 'true'
+        secure-mode: 'true'
 
     # -------------------------
     # Set environment
@@ -48,15 +50,12 @@ runs:
         pnpm build 
         zip -r "build-v${{ inputs.version }}.zip" dist/
 
-    # -------------------------
-    # Optional docs generation
-    # -------------------------
-    - name: Generate docs
-      if: ${{ inputs.generate_docs == 'true' }}
-      shell: bash
-      run: |
-        export DOC_VERSION="${{ inputs.version }}"
-        pnpm docs:generate
+    - name: Build Documentation
+      if: inputs.generate_docs == 'true'
+      uses: ./.github/actions/build-docs
+      with:
+        version: ${{ inputs.version }}
+        base_path: ${{ inputs.base_path }}
 
     # -------------------------
     # Debug output
@@ -64,5 +63,9 @@ runs:
     - name: Debug build info
       shell: bash
       run: |
-        echo "Version: ${{ inputs.version }}"
-        echo "Base path: ${{ inputs.base_path }}"
+        echo "::group::Build Details"
+        echo "Version:   $VITE_APP_VERSION"
+        echo "Base Path: $VITE_BASE_PATH"
+        echo "Artifact:  build-v${{ inputs.version }}.zip"
+        ls -la dist/
+        echo "::endgroup::"

@@ -7,7 +7,7 @@
 set -euo pipefail
 
 SIGN_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$SIGN_SCRIPT_DIR/lib/logger.sh"
+source "$SIGN_SCRIPT_DIR/../lib/logger.sh"
 
 generate_checksums() {
   local output_file="${1:-checksums.txt}"

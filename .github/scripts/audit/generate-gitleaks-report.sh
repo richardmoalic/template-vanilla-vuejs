@@ -35,51 +35,22 @@
 
 set -euo pipefail
 
-# -------------------------------
-# Globals
-# -------------------------------
+
 DRY_RUN="${DRY_RUN:-false}"
-GITLEAKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GITLEAKS_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 
 source "$GITLEAKS_DIR/lib/core.sh"
 source "$GITLEAKS_DIR/lib/logger.sh"
 
-# shellcheck source=lib/install.sh
-source "$GITLEAKS_DIR/lib/install.sh"
 
-# shellcheck source=versions.env
-source "$GITLEAKS_DIR/versions.env"
-
-
-: "${GITLEAKS_VERSION:?Missing versions.env}"
-: "${GITLEAKS_URL:?Missing versions.env}"
-
-
-# -------------------------------
-# Install Gitleaks
-# -------------------------------
-install_gitleaks() {
-
-install_tool \
-  "gitleaks" \
-  "$GITLEAKS_VERSION" \
-  "$GITLEAKS_URL" \
-  "$GITLEAKS_SHA" \
-  "tar" \
-  "gitleaks" \
-
-}
-
-# -------------------------------
-# Run scan
-# -------------------------------
 run_scan_gitleaks() {
-  log_info "[gitleaks] Starting scan..."
+  local report="gitleaks.sarif"
+  log_info "[gitleaks]" "Starting secrets detection..."
 
   if [ "$DRY_RUN" = "true" ]; then
-    log_debug "[dry-run] gitleaks detect ..."
-    ensure_file gitleaks.sarif '{"version":"2.1.0","runs":[]}'
+    log_debug "gitleaks" "[dry-run] Writing dummy SARIF"
+    echo '{"version":"2.1.0","runs":[]}' > "$report"
     return 0
   fi
 
@@ -87,33 +58,19 @@ run_scan_gitleaks() {
   gitleaks detect \
     --source . \
     --report-format sarif \
-    --report-path gitleaks.sarif \
+    --report-path "$report" \
     --redact \
     --verbose
   then
-    log_warn "[gitleaks] findings detected"
+    log_warn "gitleaks" "Potential secrets found. Check $report"
+        [[ "${ACT:-}" == "true" ]] && return 0 || return 1
   fi
 
-  ensure_file \
-    "gitleaks.sarif" \
-    '{"version":"2.1.0","runs":[]}'
-
-  if [ "${ACT:-}" = "true" ]; then
-    log_warn "::warning::[gitleaks] Non-blocking in act mode"
-  fi
-
-
-  log_success "[gitleaks] scan completed"
+  log_success "gitleaks" "No secrets detected."
 }
 
-# -------------------------------
-# Main
-# -------------------------------
-main() {
-  install_gitleaks
-  run_scan_gitleaks
-}
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  main "$@"
+    core_init
+    run_audit_gitleaks
 fi

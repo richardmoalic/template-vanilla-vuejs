@@ -1,27 +1,16 @@
 #!/usr/bin/env bash
 #==========================================================
-# SCRIPT: install-syft.sh
+# SCRIPT: generate-sbom.sh
 # PURPOSE: 
 # TOOL: Syft
 #==========================================================
 set -euo pipefail
 
-SYFT_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+GENERATE_SBOM_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
-source "$SYFT_SCRIPT_DIR/lib/core.sh"
-source "$SYFT_SCRIPT_DIR/lib/install.sh"
-source "$SYFT_SCRIPT_DIR/versions.env"
-source "$SYFT_SCRIPT_DIR/lib/logger.sh"
+source "$GENERATE_SBOM_SCRIPT_DIR/../lib/core.sh"
+source "$GENERATE_SBOM_SCRIPT_DIR/../lib/logger.sh"
 
-install_syft() {
-  install_tool \
-    "syft" \
-    "$SYFT_VERSION" \
-    "$SYFT_URL" \
-    "$SYFT_SHA" \
-    "tar" \
-    "syft"
-}
 
 generate_SBOM(){
   
@@ -38,11 +27,7 @@ run "[Generating SBOM]" syft dir:. \
 log_success "sbom" "SBOM generated: bom.json"
 }
 
-main() {
-  install_syft
-  generate_SBOM
-}
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  main "$@"
+  generate_SBOM
 fi

@@ -82,22 +82,23 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - uses: pnpm/action-setup@v5
+    - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 #v6.0.8
       with:
         version: 10.24.0
         run_install: false
 
     - name: Fix permissions
       shell: bash
-      run: bash ./.github/scripts/permissions-fix.sh
+      run: ./.github/scripts/lib/permissions-fix.sh
 
     - name: Set Cache Variables
       shell: bash
-      run: bash ./.github/scripts/cache-vars.sh
+      run: ./.github/scripts/cache/cache-vars.sh
 
     - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e #6.4.0
       with:
         node-version-file: '.nvmrc'
+        node-version: ${{ inputs.node-version }}
 
     # Pnpm Store Cache
     - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae #5.0.5
@@ -108,12 +109,13 @@ runs:
           ${{ inputs.secure-mode == 'false' && format('{0}-{1}-pnpm-store-', env.CACHE_PREFIX, runner.os) || '' }}
 
     # Vite/Vitest Cache
-    - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae #5.0.5
+    - name: Cache Build Artifacts
       if: inputs.secure-mode == 'false' && github.event.pull_request.head.repo.fork == false
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae #5.0.5
       with:
         path: |
-          ${{ env.VITE_CACHE_DIR }}
-          ${{ env.VITEST_CACHE_DIR }}
+          ${{ env.TOOLS_CACHE_DIR }}/vite
+          ${{ env.TOOLS_CACHE_DIR }}/vitest
         key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ env.CACHE_PREFIX }}-${{ runner.os }}-build-
@@ -123,7 +125,7 @@ runs:
       if: inputs.secure-mode == 'false'
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae #5.0.5
       with:
-        path: ${{ env.PLAYWRIGHT_CACHE_DIR }}
+        path: ${{ env.TOOLS_CACHE_DIR }}/playwright
         key: ${{ env.CACHE_PREFIX }}-${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ env.CACHE_PREFIX }}-${{ runner.os }}-playwright-
@@ -132,7 +134,7 @@ runs:
     - name: Prefetch deps
       if: ${{ inputs.install == 'true' }}
       shell: bash
-      run: bash ./.github/scripts/pnpm-prefetch.sh
+      run: ./.github/scripts/wrapper/pnpm.sh fetch
 
     # Install
     - name: Install dependencies
@@ -140,10 +142,7 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.secure-mode }}" == "true" ]]; then
-          bash ./.github/scripts/pnpm-install.sh --secure
+         ./.github/scripts/wrapper/pnpm.sh install --secure
         else
-          bash ./.github/scripts/pnpm-install.sh
+         ./.github/scripts/wrapper/pnpm.sh install
         fi
-      env:
-        VITE_CACHE_DIR: ${{ env.VITE_CACHE_DIR }}
-        VITEST_CACHE_DIR: ${{ env.VITEST_CACHE_DIR }}

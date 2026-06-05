@@ -91,6 +91,12 @@ jobs:
           name: signed-build-${{ github.run_id }}
           path: ./
 
+      - name: Download docs
+        uses: actions/download-artifact@@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 #v8
+        with:
+          name: docs-site
+          path: site
+
       - name: Install Security Tooling
         run: bash .github/scripts/security.sh install
 

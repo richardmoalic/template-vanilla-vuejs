@@ -8,7 +8,7 @@
 set -euo pipefail
 
 GENERATE_CHECKSUMS_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$GENERATE_CHECKSUMS_SCRIPT_DIR/lib/logger.sh"
+source "$GENERATE_CHECKSUMS_SCRIPT_DIR/../lib/logger.sh"
 
 # Check for minimum arguments
 if [ "$#" -lt 2 ]; then

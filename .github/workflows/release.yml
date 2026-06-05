@@ -68,6 +68,12 @@ jobs:
           base_path: '/${{ github.event.repository.name }}/'
           generate_docs: 'true'
 
+      - name: Upload Documentation Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-site
+          path: docs/.vitepress/dist
+
       - name: Download Security Reports
         if: steps.semantic.outputs.new_release_published == 'true'
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 #v8

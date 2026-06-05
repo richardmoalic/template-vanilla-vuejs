@@ -98,7 +98,7 @@ jobs:
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 #v6
 
       - name: Normalize Permissions
-        run: bash ./.github/scripts/permissions-fix.sh
+        run: bash ./.github/scripts/lib/permissions-fix.sh
 
   security:
     needs: fix-permissions
