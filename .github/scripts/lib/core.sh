@@ -46,22 +46,25 @@ now_ms() {
 run() {
   local msg="$1"
   shift
-  local cmd="$*"
+  local cmd=("$@")
 
   log_start "run" "$msg"
 
   if [ "${DRY_RUN:-false}" = "true" ]; then
-    log_info "run" "[dry-run] $cmd"
+    log_info "run" "[dry-run] ${cmd[*]}"
     return 0
   fi
 
   local start end status
-  start=$(date +%s%3N)
+  start=$(now_ms)
 
-  "${cmd[@]}"
-  status=$?
+  if "${cmd[@]}"; then
+      status=0
+  else
+      status=$?
+  fi
 
-  end=$(date +%s%3N)
+  end=$(now_ms)
   local seconds
   seconds=$(awk "BEGIN { printf \"%.2f\", ($end-$start)/1000 }")
 

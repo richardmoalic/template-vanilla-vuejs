@@ -25,7 +25,7 @@ fix_workspace_permissions() {
     if ! run "chmod permissions" chmod -R u+rwX "$target"; then
         log_warn "sys" "Some permissions could not be modified (expected in restricted containers)"
     fi
-    log_info "[permissions-fix]" "Done"
+    log_info "permissions-fix" "Done"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
