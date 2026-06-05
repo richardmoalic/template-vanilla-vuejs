@@ -70,25 +70,6 @@ runs:
       shell: bash
       run: ./.github/scripts/lib/permissions-fix.sh
 
-    - name: Debug workspace
-      shell: bash
-      run: |
-        pwd
-        ls -la .github/scripts
-        find .github -name "cache-vars.sh"
-
-    - name: Verify cache-vars
-      shell: bash
-      run: |
-        test -f .github/scripts/cache/cache-vars.sh
-        realpath .github/scripts/cache/cache-vars.sh
-
-    - name: Inspect file
-      shell: bash
-      run: |
-        ls -l .github/scripts/cache/cache-vars.sh
-        file .github/scripts/cache/cache-vars.sh
-
     - name: Initialize Standardized Cache Variables
       shell: bash
       run: bash ./.github/scripts/cache/cache-vars.sh

@@ -19,9 +19,9 @@ set -euo pipefail
 
 PNPM_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
-source "$PNPM_DIR/lib/core.sh"
-source "$PNPM_DIR/lib/logger.sh"
-source "$PNPM_DIR/pnpm/pnpm-lib.sh"
+source "$PNPM_DIR/../lib/core.sh"
+source "$PNPM_DIR/../lib/logger.sh"
+source "$PNPM_DIR/../pnpm/pnpm-lib.sh"
 
 core_init
 
@@ -94,4 +94,7 @@ main() {
     esac
 }
 
-main "$@"
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
