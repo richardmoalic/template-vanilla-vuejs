@@ -7,7 +7,7 @@
 set -euo pipefail
 
 AUDIT_SIGNATURES_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$AUDIT_SIGNATURES_SCRIPT_DIR/lib/logger.sh"
+source "$AUDIT_SIGNATURES_SCRIPT_DIR/../lib/logger.sh"
 
 audit_signatures(){
 log_info "audit" "Verifying dependency signatures via Sigstore..."

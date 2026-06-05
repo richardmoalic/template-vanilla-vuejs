@@ -40,8 +40,8 @@ DRY_RUN="${DRY_RUN:-false}"
 GITLEAKS_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 
-source "$GITLEAKS_DIR/lib/core.sh"
-source "$GITLEAKS_DIR/lib/logger.sh"
+source "$GITLEAKS_DIR/../lib/core.sh"
+source "$GITLEAKS_DIR/../lib/logger.sh"
 
 
 run_scan_gitleaks() {
