@@ -48,3 +48,4 @@ CHANGELOG.md.bak
 .secrets
 
 cache/
+!.github/scripts/cache/
