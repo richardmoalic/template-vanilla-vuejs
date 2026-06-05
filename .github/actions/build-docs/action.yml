@@ -17,24 +17,25 @@ runs:
   using: 'composite'
   steps:
     - name: Setup Environment
-      uses: ./.github/actions/setup-pnpm
+      shell: bash
+      uses: bash ./.github/actions/setup-pnpm
       with:
         install: 'true'
         secure-mode: 'false'
 
     - name: Install doc tools
       shell: bash
-      run: ./.github/scripts/wrapper/docs.sh install
+      run: bash ./.github/scripts/wrapper/docs.sh install
 
     - name: Generate Guides
       shell: bash
-      run: ./.github/scripts/build/generate-docs.sh
+      run: bash ./.github/scripts/build/generate-docs.sh
       env:
         DOC_VERSION: ${{ inputs.version }}
 
     - name: Generate References
       shell: bash
-      run: ./.github/scripts/wrapper/docs.sh all
+      run: bash ./.github/scripts/wrapper/docs.sh all
 
     - name: Build VitePress
       shell: bash
