@@ -14,6 +14,7 @@
 set -euo pipefail
 
 PERMISSIONS_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "$PERMISSIONS_DIR/core.sh"
 source "$PERMISSIONS_DIR/logger.sh"
 
 

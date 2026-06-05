@@ -11,6 +11,7 @@ source "$AUDIT_SIGNATURES_SCRIPT_DIR/../lib/logger.sh"
 
 audit_signatures(){
 log_info "audit" "Verifying dependency signatures via Sigstore..."
+
 local audit_file="pnpm-audit-signatures.json"
 
   # Run machine-readable audit output

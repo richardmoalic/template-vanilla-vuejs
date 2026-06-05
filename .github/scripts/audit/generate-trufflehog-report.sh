@@ -28,6 +28,7 @@ TRUFFLEHOG_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 source "$TRUFFLEHOG_DIR/../lib/core.sh"
 source "$TRUFFLEHOG_DIR/../lib/install.sh"
+source "$TRUFFLEHOG_DIR/../lib/logger.sh"
 
 
 run_scan_trufflehog() {
