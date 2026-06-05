@@ -32,10 +32,17 @@ source "$CORE_SCRIPT_DIR/logger.sh"
 # -------------------------------
 : "${DRY_RUN:=false}"
 : "${TRACE:=false}"
-: "${CACHE_DIR:=${HOME}/.cache/dev-tools}"
-: "${BIN_DIR:=${HOME}/.local/bin}"
-: "${LOG_FORMAT:-text}"
+: "${LOG_FORMAT:=text}"
 
+# Workspace-aware defaults
+WORKSPACE_ROOT="${GITHUB_WORKSPACE:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+
+: "${TOOLS_DIR:=${WORKSPACE_ROOT}/.github/tools}"
+: "${CACHE_DIR:=${TOOLS_DIR}/cache}"
+: "${BIN_DIR:=${TOOLS_DIR}/bin}"
+
+readonly WORKSPACE_ROOT
+readonly TOOLS_DIR
 readonly CACHE_DIR
 readonly BIN_DIR
 
@@ -79,6 +86,8 @@ run() {
 
 
 core_init() {
+
+  cache_init
   mkdir -p "$CACHE_DIR" "$BIN_DIR"
 
   case ":$PATH:" in
