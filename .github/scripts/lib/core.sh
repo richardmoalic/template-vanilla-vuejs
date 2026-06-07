@@ -26,7 +26,7 @@ fi
 
 CORE_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 source "$CORE_SCRIPT_DIR/logger.sh"
-source "$CORE_SCRIPT_DIR/cache/cache-vars.sh"
+source "$CORE_SCRIPT_DIR/../cache/cache-vars.sh"
 
 # -------------------------------
 # Config
