@@ -122,7 +122,7 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.secure-mode }}" == "true" ]]; then
-         bash./.github/scripts/wrapper/pnpm.sh install --secure
+         bash ./.github/scripts/wrapper/pnpm.sh install --secure
         else
          bash ./.github/scripts/wrapper/pnpm.sh install
         fi
