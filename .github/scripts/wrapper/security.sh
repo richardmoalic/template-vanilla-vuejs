@@ -23,9 +23,9 @@ source "$SECURITY_DIR/../install/install-gitleaks.sh"
 source "$SECURITY_DIR/../install/install-trufflehog.sh"
 source "$SECURITY_DIR/../audit/audit-vulnerability.sh"
 source "$SECURITY_DIR/../audit/audit-signatures.sh"
+source "$SECURITY_DIR/../audit/generate-gitleaks-report.sh"
+source "$SECURITY_DIR/../audit/generate-trufflehog-report.sh"
 source "$SECURITY_DIR/../build/sign-artifacts.sh"
-source "$SECURITY_DIR/../build/generate-gitleaks-report.sh"
-source "$SECURITY_DIR/../build/generate-trufflehog-report.sh"
 
 core_init
 
