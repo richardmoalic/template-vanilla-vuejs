@@ -17,8 +17,7 @@ runs:
   using: 'composite'
   steps:
     - name: Setup Environment
-      shell: bash
-      uses: bash ./.github/actions/setup-pnpm
+      uses: ./.github/actions/setup-pnpm
       with:
         install: 'true'
         secure-mode: 'false'

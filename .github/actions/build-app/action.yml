@@ -27,11 +27,10 @@ runs:
     # Set pnpm
     # -------------------------
     - name: Setup Environment
+      uses: ./.github/actions/setup-pnpm
       with:
         install: 'true'
         secure-mode: 'true'
-      shell: bash
-      run: bash ./.github/actions/setup-pnpm
 
     # -------------------------
     # Set environment
@@ -53,11 +52,10 @@ runs:
 
     - name: Build Documentation
       if: inputs.generate_docs == 'true'
+      uses: ./.github/actions/build-docs
       with:
         version: ${{ inputs.version }}
         base_path: ${{ inputs.base_path }}
-      shell: bash
-      run: bash ./.github/actions/build-docs
 
     # -------------------------
     # Debug output
