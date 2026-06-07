@@ -30,7 +30,7 @@ jobs:
           secure-mode: 'true'
 
       - name: Install Tools
-        run: bash .github/scripts/security.sh install
+        run: bash ./.github/scripts/wrapper/security.sh install-secure
 
       - name: Add local bin to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
@@ -47,7 +47,7 @@ jobs:
       - name: Audit Dependency Signatures
         id: audit_signatures
         run: |
-          bash .github/scripts/security.sh audit_node_signatures
+          bash ./.github/scripts/security.sh audit_node_signatures
 
       - name: Create Signature Warning
         if: steps.audit_signatures.outcome == 'failure'
@@ -65,7 +65,7 @@ jobs:
       - name: Audit Dependency Vulnerabilities
         id: audit_vulnerability
         run: |
-          bash .github/scripts/security.sh audit_node_vulnerability
+          bash ./.github/scripts/security.sh audit_node_vulnerability
 
       - name: Create Vulnerability Warning
         if: steps.audit_vulnerability.outcome == 'failure'
@@ -82,7 +82,7 @@ jobs:
 
       - name: Run Secret Scans
         run: |
-          bash .github/scripts/security.sh scan
+          bash ./.github/scripts/security.sh scan
 
       - name: Upload Gitleaks SARIF
         if: always() && github.event_name != 'pull_request' && env.ACT != 'true' && hashFiles('gitleaks.sarif') != ''
