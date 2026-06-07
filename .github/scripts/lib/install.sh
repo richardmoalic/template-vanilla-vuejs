@@ -31,6 +31,14 @@ _install_extract() {
         binary)
             _ext_bin "$archive" "$BIN_DIR" "$bin_name"
             ;;
+        source-script)
+            # Extracts the script path
+            log_info "extractor" "Extracting script from source distribution tarball..."
+            
+            # --strip-components=1 drops that root folder wrapper automatically
+            tar -xzf "$archive" -C "$BIN_DIR" --strip-components=1 --wildcards "*/$bin_name"
+            chmod +x "$BIN_DIR/$bin_name"
+            ;;
         *)
             fail "Unsupported archive type: $type"
             ;;

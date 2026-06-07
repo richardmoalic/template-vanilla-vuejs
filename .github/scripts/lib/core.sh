@@ -114,3 +114,13 @@ ensure_file() {
 
   install_tool "$name" "$version" "$url" "$sha" "$type" "$bin_name"
 }
+
+fail() {
+
+    local message="${1:-Unknown failure}"
+    local exit_code="${2:-1}"
+
+    log_error "fatal" "$message"
+
+    exit "$exit_code"
+}

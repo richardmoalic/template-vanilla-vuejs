@@ -16,6 +16,13 @@ verify_file() {
 
   [ -f "$file_path" ] || fail "Verification target missing: $file_path"
 
+  if [[ ! "$expected_sha" =~ ^[a-fA-F0-9]{64}$ ]]; then
+        log_error verify \
+            "Expected SHA256 hash, got: $expected_sha"
+
+        return 1
+    fi
+
   log_step "verify" "Checking SHA256 integrity for $(basename "$url")..."
 
   if [ "${DRY_RUN:-false}" = "true" ]; then

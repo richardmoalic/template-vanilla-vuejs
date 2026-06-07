@@ -21,7 +21,7 @@ install_shdoc() {
     "$SHDOC_VERSION" \
     "$SHDOC_URL" \
     "$SHDOC_SHA" \
-    "binary" \
+    "source-script" \
     "shdoc"
 }
 
