@@ -10,8 +10,8 @@ DOCS_ENTRY_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 # 1. Load Security/Core logic
 source "$DOCS_ENTRY_DIR/../lib/core.sh"
 source "$DOCS_ENTRY_DIR/../lib/logger.sh"
-source "$DOCS_ENTRY_DIR/../install/d2.sh"
-source "$DOCS_ENTRY_DIR/../install/shdoc.sh"
+source "$DOCS_ENTRY_DIR/../install/install-d2.sh"
+source "$DOCS_ENTRY_DIR/../install/install-shdoc.sh"
 
 # 2. Load Generation logic
 source "$DOCS_ENTRY_DIR/../build/generate-docs.sh"
