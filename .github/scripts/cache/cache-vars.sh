@@ -11,6 +11,11 @@ set -euo pipefail
 cache_init() {
 
     echo "cache init called"
+    
+    if [[ -n "${TOOLS_DIR:-}" ]]; then
+        echo "[cache-vars] Environment already initialized. Skipping configuration."
+        return 0
+    fi
 
     local workspace_root
     workspace_root="${GITHUB_WORKSPACE:-$(pwd)}"
