@@ -98,9 +98,11 @@ jobs:
           path: site
 
       - name: Install Security Tooling
+        shell: bash
         run: bash ./.github/scripts/wrapper/security.sh install
 
       - name: Supply Chain Verification
+        shell: bash
         run: |
 
           ZIP_FILE=$(ls build-*.zip)
@@ -115,6 +117,7 @@ jobs:
           echo "🚀 Verification Passed. Proceeding to deploy."
 
       - name: Extract Build
+        shell: bash
         run: |
           mkdir -p public
 
