@@ -64,7 +64,7 @@ cache_restore() {
     log_success "cache" \
         "Restored ${name}@${version}"
 
-    echo "$bin_path"
+    printf '%s\n' "$bin_path"
 }
 
 cache_store_archive() {

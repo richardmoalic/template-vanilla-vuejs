@@ -123,8 +123,6 @@ install_tool() {
         local tmp_file
         tmp_file="$(mktemp)"
 
-        trap 'rm -f "$tmp_file"' RETURN
-
         download_file "$url" "$tmp_file"
 
         verify_file \
@@ -145,6 +143,7 @@ install_tool() {
                     "$version"
             )"
 
+            rm -f "$tmp_file"
         else
 
             target_archive="$tmp_file"
