@@ -23,8 +23,8 @@ set -euo pipefail
 DRY_RUN="${DRY_RUN:-false}"
 COSIGN_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
-source "$COSIGN_SCRIPT_DIR/lib/install.sh"
-source "$COSIGN_SCRIPT_DIR/versions.env"
+source "$COSIGN_SCRIPT_DIR/../lib/install.sh"
+source "$COSIGN_SCRIPT_DIR/../versions.env"
 
 : "${COSIGN_VERSION:?Missing COSIGN_VERSION in versions.env}"
 : "${COSIGN_URL:?Missing COSIGN_URL in versions.env}"

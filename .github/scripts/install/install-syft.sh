@@ -8,8 +8,8 @@ set -euo pipefail
 
 SYFT_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
-source "$SYFT_SCRIPT_DIR/lib/install.sh"
-source "$SYFT_SCRIPT_DIR/versions.env"
+source "$SYFT_SCRIPT_DIR/../lib/install.sh"
+source "$SYFT_SCRIPT_DIR/../versions.env"
 
 : "${SYFT_VERSION:?Missing versions.env}"
 : "${SYFT_URL:?Missing versions.env}"

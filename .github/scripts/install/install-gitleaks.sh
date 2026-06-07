@@ -40,9 +40,9 @@ DRY_RUN="${DRY_RUN:-false}"
 GITLEAKS_INSTALL_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 
-source "$GITLEAKS_INSTALL_DIR/lib/logger.sh"
-source "$GITLEAKS_INSTALL_DIR/lib/install.sh"
-source "$GITLEAKS_INSTALL_DIR/versions.env"
+source "$GITLEAKS_INSTALL_DIR/../lib/logger.sh"
+source "$GITLEAKS_INSTALL_DIR/../lib/install.sh"
+source "$GITLEAKS_INSTALL_DIR/../versions.env"
 
 
 : "${GITLEAKS_VERSION:?Missing versions.env}"

@@ -8,8 +8,8 @@ set -euo pipefail
 
 D2_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
-source "$D2_SCRIPT_DIR/lib/install.sh"
-source "$D2_SCRIPT_DIR/versions.env"
+source "$D2_SCRIPT_DIR/../lib/install.sh"
+source "$D2_SCRIPT_DIR/../versions.env"
 
 : "${D2_VERSION:?Missing versions.env}"
 : "${D2_URL:?Missing versions.env}"

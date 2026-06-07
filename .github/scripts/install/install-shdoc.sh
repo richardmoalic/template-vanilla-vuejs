@@ -8,8 +8,8 @@ set -euo pipefail
 
 SHDOC_SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
-source "$SHDOC_SCRIPT_DIR/lib/install.sh"
-source "$SHDOC_SCRIPT_DIR/versions.env"
+source "$SHDOC_SCRIPT_DIR/../lib/install.sh"
+source "$SHDOC_SCRIPT_DIR/../versions.env"
 
 : "${SHDOC_VERSION:?Missing versions.env}"
 : "${SHDOC_URL:?Missing versions.env}"
