@@ -10,20 +10,22 @@ set -euo pipefail
 SECURITY_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 # 1. Global Initialization (Load libs once)
-source "$SECURITY_DIR/lib/core.sh"
-source "$SECURITY_DIR/lib/install.sh"
-source "$SECURITY_DIR/versions.env"
-source "$SECURITY_DIR/lib/logger.sh"
+source "$SECURITY_DIR/../lib/core.sh"
+source "$SECURITY_DIR/../lib/install.sh"
+source "$SECURITY_DIR/../versions.env"
+source "$SECURITY_DIR/../lib/logger.sh"
 
 # 2. Source Tool Logics (without auto-executing main)
-source "$SECURITY_DIR/install-infisical.sh"
-source "$SECURITY_DIR/install-cosign.sh"
-source "$SECURITY_DIR/install-syft.sh"
-source "$SECURITY_DIR/gitleaks.sh"
-source "$SECURITY_DIR/trufflehog.sh"
-source "$SECURITY_DIR/sign-artifacts.sh"
-source "$SECURITY_DIR/audit-vulnerability.sh"
-source "$SECURITY_DIR/audit-signatures.sh"
+source "$SECURITY_DIR/../install/install-infisical.sh"
+source "$SECURITY_DIR/../install/install-cosign.sh"
+source "$SECURITY_DIR/../install/install-syft.sh"
+source "$SECURITY_DIR/../install/install-gitleaks.sh"
+source "$SECURITY_DIR/../install/install-trufflehog.sh"
+source "$SECURITY_DIR/../audit/audit-vulnerability.sh"
+source "$SECURITY_DIR/../audit/audit-signatures.sh"
+source "$SECURITY_DIR/../build/sign-artifacts.sh"
+source "$SECURITY_DIR/../build/generate-gitleaks-report.sh"
+source "$SECURITY_DIR/../build/generate-trufflehog-report.sh"
 
 core_init
 
