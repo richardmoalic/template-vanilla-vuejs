@@ -39,9 +39,17 @@ cache_init() {
     fi
 
     # 1. Global Toolchain Core Directories
-    export TOOLS_DIR="$workspace_root/.github/tools"
-    export CACHE_DIR="$TOOLS_DIR/cache"
-    export BIN_DIR="$TOOLS_DIR/bin"
+    if [[ "${ACT:-}" == "true" ]]; then
+        # Local act container
+        export TOOLS_DIR="/root/.cache/dev-tools"
+        export CACHE_DIR="$TOOLS_DIR/cache"
+        export BIN_DIR="$TOOLS_DIR/bin"
+    else
+        # GitHub Cloud Runner
+        export TOOLS_DIR="$workspace_root/.github/tools"
+        export CACHE_DIR="$TOOLS_DIR/cache"
+        export BIN_DIR="$TOOLS_DIR/bin"
+    fi
 
     # 2. Sub-cache Downstreams
     export PNPM_STORE_DIR="$CACHE_DIR/pnpm-store"

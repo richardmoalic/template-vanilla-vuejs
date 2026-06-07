@@ -26,7 +26,7 @@ download_file() {
   --connect-timeout 10 \
   --progress-bar \
   -o "$out" \
-  "$url"
+  "$url" 2>&1
 
   log_done "Downloading file from" "$url"
 }
