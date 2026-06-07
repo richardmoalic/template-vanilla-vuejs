@@ -43,19 +43,27 @@ run_scan_trufflehog() {
     return 0
   fi
 
+  #initialize empty file
+  echo "[]" > "$json"
+
+
+  local tmp_scan
+  tmp_scan="$(mktemp)"
 
    if ! run "[trufflehog] scan" \
     trufflehog git "file://$PWD" \
       --only-verified \
       --no-update \
       --json \
-      > "$json"
+      > "$tmp_scan"
   then
-    if [[ -s "$json" ]]; then
+    if [[ -s "$tmp_scan" ]]; then
+            mv "$tmp_scan" "$json"
             log_error "trufflehog" "VERIFIED secrets detected in history!"
             return 1
     fi
   fi
+  rm -f "$tmp_scan"
 
   log_success "trufflehog" "Clean scan (no verified secrets found)."
 }
