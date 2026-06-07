@@ -98,7 +98,7 @@ jobs:
           path: site
 
       - name: Install Security Tooling
-        run: bash .github/scripts/security.sh install
+        run: bash ./.github/scripts/wrapper/security.sh install
 
       - name: Supply Chain Verification
         run: |
@@ -106,7 +106,7 @@ jobs:
           ZIP_FILE=$(ls build-*.zip)
           echo "ZIP_FILE=$ZIP_FILE" >> $GITHUB_ENV
 
-          bash .github/scripts/security.sh verify \
+          bash ./.github/scripts/wrapper/security.sh verify \
             "checksums.txt" \
             "checksums.txt.bundle.json"
 

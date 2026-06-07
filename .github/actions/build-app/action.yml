@@ -28,7 +28,7 @@ runs:
     # -------------------------
     - name: Setup Environment
       shell: bash
-      uses: bash ./.github/actions/setup-pnpm
+      run: bash ./.github/actions/setup-pnpm
       with:
         install: 'true'
         secure-mode: 'true'
@@ -54,7 +54,7 @@ runs:
     - name: Build Documentation
       if: inputs.generate_docs == 'true'
       shell: bash
-      uses: bash ./.github/actions/build-docs
+      run: bash ./.github/actions/build-docs
       with:
         version: ${{ inputs.version }}
         base_path: ${{ inputs.base_path }}
