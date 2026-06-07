@@ -26,6 +26,7 @@ source "$SECURITY_DIR/../audit/audit-signatures.sh"
 source "$SECURITY_DIR/../audit/generate-gitleaks-report.sh"
 source "$SECURITY_DIR/../audit/generate-trufflehog-report.sh"
 source "$SECURITY_DIR/../build/sign-artifacts.sh"
+source "$SECURITY_DIR/../build/generate-sbom.sh"
 
 core_init
 
