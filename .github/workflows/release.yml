@@ -58,7 +58,7 @@ jobs:
       - name: Install Security Tooling
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
-          bash .github/scripts/security.sh install
+          bash ./.github/scripts/wrapper/security.sh install
 
       - name: Build App + Docs
         if: steps.semantic.outputs.new_release_published == 'true'
@@ -84,12 +84,12 @@ jobs:
       - name: Generate SBOM
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
-          bash .github/scripts/security.sh sbom "${{ steps.semantic.outputs.new_release_version }}"
+          bash ./.github/scripts/wrapper/security.sh sbom "${{ steps.semantic.outputs.new_release_version }}"
 
       - name: Sign Release Assets
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
-          bash .github/scripts/security.sh sign \
+          bash .github/scripts/wrapper/security.sh sign \
             "build-v${{ steps.semantic.outputs.new_release_version }}.zip" \
             "bom.json" \
             "gitleaks.sarif" \
