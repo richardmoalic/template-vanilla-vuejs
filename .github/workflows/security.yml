@@ -31,7 +31,7 @@ jobs:
 
       - name: Install Tools
         shell: bash
-        run: bash ./.github/scripts/wrapper/security.sh install-secure
+        run: bash ./.github/scripts/wrapper/security.sh install
 
       - name: Add local bin to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
