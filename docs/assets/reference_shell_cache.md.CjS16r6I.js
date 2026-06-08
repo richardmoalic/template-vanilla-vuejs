@@ -1,0 +1,1 @@
+import{Q as e,s as t,z as n}from"./chunks/framework.C2hzW9KI.js";var r=JSON.parse(`{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"reference/shell/cache.md","filePath":"reference/shell/cache.md"}`),i={name:`reference/shell/cache.md`};function a(t,r,i,a,o,s){return e(),n(`div`)}var o=t(i,[[`render`,a]]);export{r as __pageData,o as default};
