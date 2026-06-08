@@ -10,11 +10,13 @@
 
   "plugin": ["typedoc-plugin-markdown"],
 
-  "exclude": ["**/*.spec.js", "**/*.test.js", "**/node_modules/**"],
+  "exclude": ["**/*.spec.js", "**/*.test.js", "**/node_modules/**", "dist"],
 
   "hideGenerator": true,
   "cleanOutputDir": true,
   "includeVersion": true,
   "searchInComments": true,
-  "disableSources": false
+  "disableSources": false,
+  "excludeInternal": true,
+  "excludePrivate": true
 }

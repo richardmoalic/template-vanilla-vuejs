@@ -71,7 +71,7 @@ jobs:
           generate_docs: 'true'
 
       - name: Upload Documentation Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f #v7
         with:
           name: docs-site
           path: docs/.vitepress/dist
@@ -170,8 +170,3 @@ jobs:
             echo "### Artifacts"
             ls -lh build-*.zip
           } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Debug Release Outputs
-        run: |
-          echo "version=${{ steps.semantic.outputs.new_release_version }}"
-          echo "published=${{ steps.semantic.outputs.new_release_published }}"

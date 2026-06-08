@@ -127,9 +127,12 @@ jobs:
 
           # Docs
 
-          if [ -d extracted/docs ]; then
+          if [ -d "site" ]; then
             mkdir -p public/docs
-            cp -r extracted/docs/* public/docs/
+            cp -r site/* public/docs/
+            echo "✨ VitePress documentation successfully integrated into public/docs/"
+          else
+            echo "⚠️ Warning: 'site' directory not found. Skipping docs integration."
           fi
 
       # Deploy
