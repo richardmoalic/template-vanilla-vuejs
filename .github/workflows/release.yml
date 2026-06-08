@@ -11,6 +11,8 @@ on:
         value: ${{ jobs.release.outputs.changelog }}
       result:
         value: ${{ jobs.release.result }}
+      published:
+        value: ${{ jobs.release.outputs.published }}
 
 env:
   HUSKY: 0
@@ -112,16 +114,6 @@ jobs:
           subject-path: build-v${{ steps.semantic.outputs.new_release_version }}.zip
           show-summary: true
 
-      - name: List artefacts
-        run: |
-          ls -lh \
-          build-* \
-          bom.json* \
-          gitleaks.sarif* \
-          trufflehog.json* \
-          pnpm-audit-* \
-          checksums.txt*
-
       - name: Upload Release Assets
         if: steps.semantic.outputs.new_release_published == 'true'
         run: |
@@ -135,7 +127,6 @@ jobs:
           \))
 
           if [ -n "$FILES" ]; then
-            echo "Uploading: $FILES"
             gh release upload \
               "v${{ steps.semantic.outputs.new_release_version }}" \
               $FILES \
@@ -179,3 +170,8 @@ jobs:
             echo "### Artifacts"
             ls -lh build-*.zip
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Debug Release Outputs
+        run: |
+          echo "version=${{ steps.semantic.outputs.new_release_version }}"
+          echo "published=${{ steps.semantic.outputs.new_release_published }}"
